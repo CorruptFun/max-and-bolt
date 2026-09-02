@@ -44,4 +44,4 @@ she/her for a girl-hero profile, and every bare `Max` becomes the profile's hero
 Pronouns for Bolt, the cat, Dr. Dullsworth etc. stay plain. See `BRIEF.md` for the writing rules per
 season and the full art vocabulary. Add a sticker emoji for the new id in `js/content.js` → `STICKERS`.
 
-Regenerate icons after editing `scripts/icon.svg`: `scripts/make-icons.sh` (needs `brew install librsvg`).
+Icons are composed from the character art: `node scripts/make-icon.js && scripts/make-icons.sh` (needs `brew install librsvg`).

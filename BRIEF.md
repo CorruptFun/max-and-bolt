@@ -38,6 +38,13 @@ The timer only runs on reading pages — math pages are thinking time.
 - Kid-facing screens are big-button, no dense text. Anything analytical lives behind the parent gate.
 - No farm theming in the family apps (Austin's rule). Backyard, garage, treehouse, school, space, sea.
 
+## Art style (v2, 2026-09-02)
+Rounder "chibi" characters: head ≈ 45% of height, soft body blob, capsule legs, curved arms with round
+hands, big white eyes with a highlight, blush, ink `#2b2a33` at 3px. Bolt uses `url(#mtl)` metal gradients
+and `url(#glow)` eyes (defs are injected into every panel/portrait SVG). Every character is a function
+`CHAR.who(mood, pose)` with feet at (0,0); humans share `human(o, mood, pose)`. The icon is composed from the
+same art by `scripts/make-icon.js` → `scripts/icon.svg` → `scripts/make-icons.sh`.
+
 ## Art vocabulary (js/art.js)
 - `bg`: yard garage tree room kitchen street park space sea night school lab jungle snow city stage cave
 - `who`: max bolt zoe cat dull mom · `mood`: happy excited surprised worried mad sly sleepy think laugh

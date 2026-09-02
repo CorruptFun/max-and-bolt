@@ -168,212 +168,193 @@
     }).join("");
   }
 
-  /* ---------- faces (humans) ---------- */
+  /* ---------- characters (v2: rounder "chibi" look — big heads, soft bodies, sparkly eyes) ---------- */
+  const INK = "#2b2a33";
+  const SW = 3;
+  const DEFS = `<defs>
+    <linearGradient id="mtl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f6"/><stop offset="1" stop-color="#b7bfcc"/></linearGradient>
+    <linearGradient id="mtlD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6d7688"/><stop offset="1" stop-color="#4a5262"/></linearGradient>
+    <radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#b8ffd2"/><stop offset=".55" stop-color="#3cff7a"/><stop offset="1" stop-color="#17c95a"/></radialGradient>
+  </defs>`;
+
+  const eye = (cx, cy, rx, ry, px, py) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#fff" stroke="${INK}" stroke-width="2.2"/>
+    <circle cx="${cx + (px || 0)}" cy="${cy + (py || 1)}" r="${rx * .55}" fill="${INK}"/><circle cx="${cx + (px || 0) - rx * .2}" cy="${cy + (py || 1) - ry * .3}" r="${rx * .22}" fill="#fff"/>`;
+  const arc = (cx, cy, w, up) => `<path d="M${cx - w} ${cy} Q${cx} ${cy + (up ? -w * 1.3 : w * 1.3)} ${cx + w} ${cy}" stroke="${INK}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  const blush = `<circle cx="-19" cy="9" r="5" fill="#ff8aa8" opacity=".45"/><circle cx="19" cy="9" r="5" fill="#ff8aa8" opacity=".45"/>`;
+
+  /* human face, relative to head centre, head radius 30 */
   function face(mood) {
-    // eyes at (-9,-4) & (9,-4), mouth at (0,10) — relative to head center; head radius ~24
-    const eyeOpen = (dx) => `<circle cx="${dx}" cy="-4" r="5" fill="#fff" stroke="#222" stroke-width="2"/><circle cx="${dx + 1.5}" cy="-3" r="2.4" fill="#222"/>`;
-    const eyeWide = (dx) => `<circle cx="${dx}" cy="-4" r="7" fill="#fff" stroke="#222" stroke-width="2"/><circle cx="${dx + 1}" cy="-3" r="2.8" fill="#222"/>`;
-    const eyeHappy = (dx) => `<path d="M${dx - 5} -3 Q${dx} -10 ${dx + 5} -3" stroke="#222" stroke-width="2.5" fill="none"/>`;
-    const eyeSly = (dx) => `<path d="M${dx - 5} -6 L${dx + 5} -6" stroke="#222" stroke-width="2.5"/><circle cx="${dx}" cy="-3" r="4" fill="#fff" stroke="#222" stroke-width="2"/><circle cx="${dx + 1}" cy="-2.5" r="2" fill="#222"/>`;
-    const eyeSleep = (dx) => `<path d="M${dx - 5} -3 Q${dx} 2 ${dx + 5} -3" stroke="#222" stroke-width="2.5" fill="none"/>`;
-    const browMad = `<path d="M-15 -14 L-4 -9 M15 -14 L4 -9" stroke="#222" stroke-width="2.5" stroke-linecap="round"/>`;
-    const browWorry = `<path d="M-15 -10 L-4 -14 M15 -10 L4 -14" stroke="#222" stroke-width="2.5" stroke-linecap="round"/>`;
-    const browUp = `<path d="M-14 -15 Q-9 -18 -4 -15 M14 -15 Q9 -18 4 -15" stroke="#222" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+    const open = eye(-11, -2, 7.5, 8.5) + eye(11, -2, 7.5, 8.5);
+    const wide = eye(-11, -2, 8.5, 9.5, 0, 0) + eye(11, -2, 8.5, 9.5, 0, 0);
+    const happyEyes = arc(-11, -2, 7, true) + arc(11, -2, 7, true);
+    const closed = arc(-11, -1, 7, false) + arc(11, -1, 7, false);
+    const sly = `<path d="M-18 -8 L-4 -8" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/><path d="M4 -8 L18 -8" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/>` + eye(-11, 0, 7, 5.5) + eye(11, 0, 7, 5.5);
+    const browMad = `<path d="M-19 -15 L-5 -10 M19 -15 L5 -10" stroke="${INK}" stroke-width="2.8" stroke-linecap="round"/>`;
+    const browWorry = `<path d="M-19 -11 L-5 -15 M19 -11 L5 -15" stroke="${INK}" stroke-width="2.8" stroke-linecap="round"/>`;
+    const browUp = `<path d="M-18 -16 Q-11 -20 -4 -16 M18 -16 Q11 -20 4 -16" stroke="${INK}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+    const smile = `<path d="M-9 12 Q0 21 9 12" stroke="${INK}" stroke-width="2.8" fill="none" stroke-linecap="round"/>`;
+    const grin = `<path d="M-12 10 Q0 27 12 10Z" fill="#d94a63" stroke="${INK}" stroke-width="2.6" stroke-linejoin="round"/><path d="M-8 11.5 Q0 15 8 11.5" fill="#fff"/>`;
+    const bigLaugh = `<path d="M-13 9 Q0 30 13 9Z" fill="#d94a63" stroke="${INK}" stroke-width="2.6" stroke-linejoin="round"/><path d="M-9 11 Q0 15 9 11" fill="#fff"/><ellipse cx="0" cy="21" rx="6" ry="3" fill="#ff8aa8"/>`;
+    const oh = `<ellipse cx="0" cy="15" rx="5.5" ry="7" fill="#d94a63" stroke="${INK}" stroke-width="2.6"/>`;
+    const frown = `<path d="M-8 18 Q0 11 8 18" stroke="${INK}" stroke-width="2.8" fill="none" stroke-linecap="round"/>`;
+    const flat = `<path d="M-7 15 L7 14" stroke="${INK}" stroke-width="2.8" stroke-linecap="round"/>`;
+    const smirk = `<path d="M-8 13 Q3 21 12 10" stroke="${INK}" stroke-width="2.8" fill="none" stroke-linecap="round"/>`;
     const m = {
-      happy: eyeOpen(-9) + eyeOpen(9) + `<path d="M-9 8 Q0 18 9 8" stroke="#222" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
-      excited: eyeHappy(-9) + eyeHappy(9) + `<path d="M-11 6 Q0 22 11 6Z" fill="#c0392b" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/><path d="M-8 8 Q0 12 8 8" fill="#fff"/>`,
-      surprised: browUp + eyeWide(-9) + eyeWide(9) + `<ellipse cx="0" cy="12" rx="5" ry="7" fill="#c0392b" stroke="#222" stroke-width="2.5"/>`,
-      worried: browWorry + eyeOpen(-9) + eyeOpen(9) + `<path d="M-8 14 Q0 8 8 14" stroke="#222" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
-      mad: browMad + eyeOpen(-9) + eyeOpen(9) + `<path d="M-9 14 Q0 8 9 14" stroke="#222" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
-      sly: eyeSly(-9) + eyeSly(9) + `<path d="M-9 9 Q2 16 11 6" stroke="#222" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
-      sleepy: eyeSleep(-9) + eyeSleep(9) + `<ellipse cx="0" cy="12" rx="4" ry="4" fill="#c0392b" stroke="#222" stroke-width="2"/>`,
-      think: eyeOpen(-9) + eyeOpen(9) + `<path d="M-6 12 L6 10" stroke="#222" stroke-width="2.5" stroke-linecap="round"/>`,
-      laugh: eyeHappy(-9) + eyeHappy(9) + `<path d="M-12 6 Q0 24 12 6Z" fill="#c0392b" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>`,
+      happy: open + smile, excited: happyEyes + grin, surprised: browUp + wide + oh, worried: browWorry + open + frown,
+      mad: browMad + open + frown, sly: sly + smirk, sleepy: closed + `<ellipse cx="0" cy="15" rx="4" ry="4.5" fill="#d94a63" stroke="${INK}" stroke-width="2.2"/>`,
+      think: open + flat, laugh: happyEyes + bigLaugh, love: open + smile,
     };
-    return m[mood] || m.happy;
+    return blush + (m[mood] || m.happy);
   }
 
-  /* arms: returns two paths given shoulder positions. pose names: down, up, point, think, wave, hips, run */
-  function arms(pose, skin, sleeve) {
-    const L = (d) => `<path d="${d}" stroke="${sleeve}" stroke-width="11" fill="none" stroke-linecap="round"/><path d="${d}" stroke="${skin}" stroke-width="7" fill="none" stroke-linecap="round"/>`;
-    const hand = (x, y) => `<circle cx="${x}" cy="${y}" r="6.5" fill="${skin}" stroke="#222" stroke-width="2"/>`;
-    const outline = (d) => `<path d="${d}" stroke="#222" stroke-width="15" fill="none" stroke-linecap="round"/>`;
-    const P = {
-      down: ["M-16 8 L-22 40", "M16 8 L22 40"],
-      up: ["M-16 8 L-30 -30", "M16 8 L30 -30"],
-      point: ["M-16 8 L-22 40", "M16 8 L48 -6"],
-      think: ["M-16 8 L-22 40", "M16 8 L14 -20"],
-      wave: ["M-16 8 L-22 40", "M16 8 L34 -28"],
-      hips: ["M-16 8 L-30 30 L-14 34", "M16 8 L30 30 L14 34"],
-      run: ["M-16 8 L-34 -6", "M16 8 L36 24"],
-      hold: ["M-16 8 L-16 34", "M16 8 L16 34"],
-      cheer: ["M-16 8 L-36 -24", "M16 8 L36 -24"],
+  /* arms: soft curves from the shoulders. pose → [left end, right end] relative to shoulder (x mirrored for left). */
+  const POSES = {
+    down: [[-6, 34], [6, 34]], up: [[-18, -34], [18, -34]], point: [[-6, 34], [36, -10]], think: [[-6, 34], [-6, -12]],
+    wave: [[-6, 34], [26, -30]], hips: [[-18, 24], [18, 24]], run: [[-20, -10], [24, 14]], hold: [[-2, 30], [2, 30]], cheer: [[-28, -26], [28, -26]],
+  };
+  function arms(pose, skin, sleeve, sx, sy, hand) {
+    const [l, r] = POSES[pose] || POSES.down;
+    const one = (x0, y0, dx, dy) => {
+      const ex = x0 + dx, ey = y0 + dy, cx = x0 + dx * .3 + (dx > 0 ? 6 : -6), cy = y0 + dy * .6 + 6;
+      const d = `M${x0} ${y0} Q${cx} ${cy} ${ex} ${ey}`;
+      return `<path d="${d}" stroke="${INK}" stroke-width="14" fill="none" stroke-linecap="round"/><path d="${d}" stroke="${sleeve}" stroke-width="9" fill="none" stroke-linecap="round"/>
+        <circle cx="${ex}" cy="${ey}" r="${hand || 7}" fill="${skin}" stroke="${INK}" stroke-width="2.4"/>`;
     };
-    const [a, b] = P[pose] || P.down;
-    const end = (d) => { const m = d.match(/L\s*(-?[\d.]+)\s+(-?[\d.]+)\s*$/); return [+m[1], +m[2]]; };
-    const [ax, ay] = end(a), [bx, by] = end(b);
-    return outline(a) + outline(b) + L(a) + L(b) + hand(ax, ay) + hand(bx, by);
+    return one(-sx, sy, l[0], l[1]) + one(sx, sy, r[0], r[1]);
   }
 
-  /* hero (the "max" slot) can be a boy or a girl — set per reader profile */
+  /* generic human: feet at (0,0). o = { skin, top, bottom, shoe, hair(behind|front), headY, bodyTop, bodyBot, w, legH } */
+  function human(o, mood, pose) {
+    const w = o.w || 22, bt = o.bodyTop, bb = o.bodyBot, hy = o.headY, legH = o.legH || 22;
+    const body = `M${-w} ${bt} Q${-w - 5} ${bb} ${-w + 7} ${bb} L${w - 7} ${bb} Q${w + 5} ${bb} ${w} ${bt} Q0 ${bt - 8} ${-w} ${bt}Z`;
+    return `
+      <g>
+        ${o.hairBack || ""}
+        ${arms(pose, o.skin, o.top, w - 3, bt + 10)}
+        <rect x="${-w + 3}" y="${bb - 4}" width="${w - 5}" height="${legH}" rx="8" fill="${o.bottom}" stroke="${INK}" stroke-width="${SW}"/>
+        <rect x="2" y="${bb - 4}" width="${w - 5}" height="${legH}" rx="8" fill="${o.bottom}" stroke="${INK}" stroke-width="${SW}"/>
+        <ellipse cx="${-w / 2 - 1}" cy="-5" rx="${w / 2 + 3}" ry="6.5" fill="${o.shoe}" stroke="${INK}" stroke-width="${SW}"/>
+        <ellipse cx="${w / 2 + 1}" cy="-5" rx="${w / 2 + 3}" ry="6.5" fill="${o.shoe}" stroke="${INK}" stroke-width="${SW}"/>
+        <path d="${body}" fill="${o.top}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>
+        ${o.chest || ""}
+        <circle cx="0" cy="${hy}" r="30" fill="${o.skin}" stroke="${INK}" stroke-width="${SW}"/>
+        <ellipse cx="-11" cy="${hy - 13}" rx="9" ry="5" fill="#fff" opacity=".28"/>
+        ${o.hairFront || ""}
+        <g transform="translate(0 ${hy})">${face(mood)}</g>
+        ${o.extra || ""}
+      </g>`;
+  }
+
   const HERO = { gender: "boy", name: "Max" };
   function setHero(h) { HERO.gender = h.gender === "girl" ? "girl" : "boy"; HERO.name = h.name || (HERO.gender === "girl" ? "Maxie" : "Max"); NAMES.max = HERO.name; }
 
-  /* ---------- characters. each draws standing with feet at (0,0), ~110 tall ---------- */
   const CHAR = {
     max(mood, pose) {
       const girl = HERO.gender === "girl";
-      const skin = "#f6c9a0", shirt = girl ? "#ff6fae" : "#3fb64f", shorts = girl ? "#8e44ad" : "#3a6cc8";
-      const hair = girl
-        ? `<path d="M-26 -8 Q-30 -34 0 -34 Q30 -34 26 -8 Q14 -20 0 -18 Q-14 -20 -26 -8Z" fill="#e0771a" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
-           <path d="M-26 -10 Q-46 -6 -40 22 Q-32 30 -30 8Z" fill="#e0771a" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
-           <path d="M26 -10 Q46 -6 40 22 Q32 30 30 8Z" fill="#e0771a" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
-           <circle cx="-29" cy="-8" r="5" fill="#ff5e9e" stroke="#222" stroke-width="2"/><circle cx="29" cy="-8" r="5" fill="#ff5e9e" stroke="#222" stroke-width="2"/>`
-        : `<path d="M-26 -8 L-30 -34 L-16 -22 L-10 -40 L2 -24 L12 -42 L18 -22 L30 -32 L26 -6Z" fill="#e0771a" stroke="#222" stroke-width="3" stroke-linejoin="round"/>`;
-      return `
-        <g transform="translate(0 -110)">
-          ${arms(pose, skin, shirt)}
-          <rect x="-20" y="0" width="40" height="48" rx="10" fill="${shirt}" stroke="#222" stroke-width="3"/>
-          <path d="M-2 10 L6 10 L0 24 L8 24 L-4 42 L0 28 L-8 28Z" fill="#ffe66d" stroke="#222" stroke-width="1.5"/>
-          <rect x="-20" y="46" width="18" height="30" rx="4" fill="${shorts}" stroke="#222" stroke-width="3"/>
-          <rect x="2" y="46" width="18" height="30" rx="4" fill="${shorts}" stroke="#222" stroke-width="3"/>
-          <rect x="-24" y="74" width="24" height="36" rx="2" fill="${skin}" stroke="#222" stroke-width="3"/>
-          <rect x="0" y="74" width="24" height="36" rx="2" fill="${skin}" stroke="#222" stroke-width="3"/>
-          <rect x="-26" y="98" width="26" height="14" rx="5" fill="#e53935" stroke="#222" stroke-width="3"/>
-          <rect x="0" y="98" width="26" height="14" rx="5" fill="#e53935" stroke="#222" stroke-width="3"/>
-          <rect x="-26" y="106" width="26" height="6" fill="#fff" stroke="#222" stroke-width="2"/>
-          <rect x="0" y="106" width="26" height="6" fill="#fff" stroke="#222" stroke-width="2"/>
-          <g transform="translate(0 -20)">
-            ${hair}
-            <circle cx="0" cy="0" r="24" fill="${skin}" stroke="#222" stroke-width="3"/>
-            ${girl ? `<path d="M-24 -6 Q-12 -26 0 -14 Q12 -26 24 -6 Q10 -14 0 -8 Q-10 -14 -24 -6Z" fill="#e0771a"/>` : ""}
-            <circle cx="-14" cy="6" r="1.5" fill="#d29a6b"/><circle cx="-19" cy="4" r="1.5" fill="#d29a6b"/><circle cx="16" cy="6" r="1.5" fill="#d29a6b"/><circle cx="20" cy="3" r="1.5" fill="#d29a6b"/>
-            ${face(mood)}
-          </g>
-        </g>`;
+      const skin = "#f8d3b0", hy = -95;
+      const hairC = "#ee8a2e";
+      const hairFront = girl
+        ? `<path d="M-31 ${hy - 4} Q-30 ${hy - 40} 0 ${hy - 38} Q30 ${hy - 40} 31 ${hy - 4} Q22 ${hy - 26} 4 ${hy - 20} Q-6 ${hy - 26} -31 ${hy - 4}Z" fill="${hairC}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>
+           <circle cx="-33" cy="${hy - 6}" r="6" fill="#ff5e9e" stroke="${INK}" stroke-width="2.2"/><circle cx="33" cy="${hy - 6}" r="6" fill="#ff5e9e" stroke="${INK}" stroke-width="2.2"/>`
+        : `<path d="M-30 ${hy - 6} Q-34 ${hy - 30} -20 ${hy - 36} Q-14 ${hy - 46} -4 ${hy - 36} Q4 ${hy - 50} 12 ${hy - 36} Q24 ${hy - 44} 26 ${hy - 28} Q34 ${hy - 26} 30 ${hy - 6} Q22 ${hy - 24} 8 ${hy - 20} Q-8 ${hy - 26} -30 ${hy - 6}Z" fill="${hairC}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>`;
+      const hairBack = girl
+        ? `<path d="M-30 ${hy - 8} Q-52 ${hy} -44 ${hy + 36} Q-36 ${hy + 44} -32 ${hy + 12}Z" fill="${hairC}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>
+           <path d="M30 ${hy - 8} Q52 ${hy} 44 ${hy + 36} Q36 ${hy + 44} 32 ${hy + 12}Z" fill="${hairC}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>`
+        : "";
+      const bolt = `<path d="M-1 -60 L7 -60 L1 -48 L9 -48 L-5 -30 L-1 -42 L-9 -42Z" fill="#ffe66d" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>`;
+      return human({ skin, top: girl ? "#ff6fae" : "#3fb64f", bottom: girl ? "#8e44ad" : "#3a6cc8", shoe: "#e5473d", headY: hy, bodyTop: -68, bodyBot: -26, w: 22, hairFront, hairBack, chest: bolt,
+        extra: `<circle cx="-15" cy="${hy + 9}" r="1.3" fill="#d29a6b"/><circle cx="-20" cy="${hy + 6}" r="1.3" fill="#d29a6b"/><circle cx="16" cy="${hy + 9}" r="1.3" fill="#d29a6b"/><circle cx="21" cy="${hy + 6}" r="1.3" fill="#d29a6b"/>` }, mood, pose);
+    },
+    zoe(mood, pose) {
+      const skin = "#eec39a", hy = -112, hair = "#4a2c1a";
+      return human({ skin, top: "#9b59d0", bottom: "#2c3e50", shoe: "#fff", headY: hy, bodyTop: -84, bodyBot: -32, w: 22, legH: 24,
+        hairBack: `<path d="M26 ${hy - 12} Q56 ${hy - 20} 50 ${hy + 24} Q42 ${hy + 46} 30 ${hy + 16}Z" fill="${hair}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>`,
+        hairFront: `<path d="M-31 ${hy - 2} Q-32 ${hy - 40} 0 ${hy - 38} Q32 ${hy - 40} 31 ${hy - 2} Q24 ${hy - 22} 10 ${hy - 18} Q-4 ${hy - 28} -31 ${hy - 2}Z" fill="${hair}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>
+                    <circle cx="30" cy="${hy - 8}" r="5" fill="#ffd93d" stroke="${INK}" stroke-width="2"/>`,
+        chest: `<path d="M-22 -76 Q0 -62 22 -76" stroke="#7a3fa8" stroke-width="3" fill="none"/><rect x="-9" y="-52" width="18" height="16" rx="5" fill="#7a3fa8" stroke="${INK}" stroke-width="2.2"/>` }, mood, pose);
+    },
+    mom(mood, pose) {
+      const skin = "#f8d3b0", hy = -118, hair = "#e0771a";
+      return human({ skin, top: "#ff7a59", bottom: "#5c6bc0", shoe: "#2b2a33", headY: hy, bodyTop: -90, bodyBot: -40, w: 22, legH: 28,
+        hairBack: `<path d="M-32 ${hy + 4} Q-38 ${hy - 44} 0 ${hy - 40} Q38 ${hy - 44} 32 ${hy + 4} L28 ${hy + 24} Q0 ${hy + 30} -28 ${hy + 24}Z" fill="${hair}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>`,
+        hairFront: `<path d="M-31 ${hy - 4} Q-28 ${hy - 40} 0 ${hy - 38} Q28 ${hy - 40} 31 ${hy - 4} Q20 ${hy - 22} 0 ${hy - 18} Q-20 ${hy - 22} -31 ${hy - 4}Z" fill="${hair}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>`,
+        chest: `<circle cx="0" cy="-70" r="3" fill="#fff" opacity=".7"/><circle cx="0" cy="-58" r="3" fill="#fff" opacity=".7"/>` }, mood, pose);
+    },
+    dull(mood, pose) {
+      const skin = "#eccfa8", hy = -126;
+      const m = mood === "happy" ? "think" : mood;
+      return human({ skin, top: "#6b6f7a", bottom: "#4a4d57", shoe: "#1f1f26", headY: hy, bodyTop: -96, bodyBot: -42, w: 19, legH: 30,
+        hairFront: `<path d="M-30 ${hy - 4} Q-30 ${hy - 26} -14 ${hy - 28} L-14 ${hy - 14} Q-24 ${hy - 12} -30 ${hy - 4}Z M30 ${hy - 4} Q30 ${hy - 26} 14 ${hy - 28} L14 ${hy - 14} Q24 ${hy - 12} 30 ${hy - 4}Z" fill="#b8bcc6" stroke="${INK}" stroke-width="2.6" stroke-linejoin="round"/>`,
+        chest: `<path d="M-4 -96 L0 -66 L4 -96Z" fill="#c62828" stroke="${INK}" stroke-width="1.6"/>`,
+        extra: `<g transform="translate(0 ${hy})"><path d="M-13 9 Q-7 3 0 9 Q7 3 13 9 Q7 12 0 10.5 Q-7 12 -13 9Z" fill="#6b6f7a" stroke="${INK}" stroke-width="1.6"/>
+                <rect x="-22" y="-12" width="17" height="12" rx="4" fill="none" stroke="${INK}" stroke-width="2"/><rect x="5" y="-12" width="17" height="12" rx="4" fill="none" stroke="${INK}" stroke-width="2"/><path d="M-5 -6 L5 -6" stroke="${INK}" stroke-width="2"/></g>` }, m, pose);
     },
     bolt(mood, pose) {
-      const metal = "#c6ccd8", dark = "#5b6472";
+      const hy = -94;
+      const E = (dx, cy, r) => `<circle cx="${dx}" cy="${cy}" r="${r}" fill="url(#glow)"/><circle cx="${dx - r * .35}" cy="${cy - r * .35}" r="${r * .3}" fill="#fff" opacity=".9"/>`;
       const eyes = {
-        happy: `<circle cx="-9" cy="0" r="5" fill="#3cff7a"/><circle cx="9" cy="0" r="5" fill="#3cff7a"/><path d="M-6 12 Q0 18 6 12" stroke="#3cff7a" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
-        excited: `<path d="M-14 0 Q-9 -8 -4 0" stroke="#3cff7a" stroke-width="3" fill="none"/><path d="M4 0 Q9 -8 14 0" stroke="#3cff7a" stroke-width="3" fill="none"/><path d="M-8 10 Q0 20 8 10Z" fill="#3cff7a"/>`,
-        surprised: `<circle cx="-9" cy="0" r="7" fill="#3cff7a"/><circle cx="9" cy="0" r="7" fill="#3cff7a"/><circle cx="0" cy="13" r="4" fill="#3cff7a"/>`,
-        worried: `<circle cx="-9" cy="0" r="5" fill="#ffd166"/><circle cx="9" cy="0" r="5" fill="#ffd166"/><path d="M-6 16 Q0 10 6 16" stroke="#ffd166" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
-        mad: `<path d="M-15 -6 L-4 -1 M15 -6 L4 -1" stroke="#ff5252" stroke-width="3"/><circle cx="-9" cy="2" r="4" fill="#ff5252"/><circle cx="9" cy="2" r="4" fill="#ff5252"/><path d="M-6 16 Q0 10 6 16" stroke="#ff5252" stroke-width="2.5" fill="none"/>`,
-        sly: `<rect x="-14" y="-2" width="10" height="4" fill="#3cff7a"/><rect x="4" y="-2" width="10" height="4" fill="#3cff7a"/><path d="M-6 10 Q2 16 8 8" stroke="#3cff7a" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
-        sleepy: `<path d="M-14 0 Q-9 6 -4 0 M4 0 Q9 6 14 0" stroke="#3cff7a" stroke-width="3" fill="none"/><text x="18" y="-16" font-size="12" fill="#3cff7a" font-family="Bangers,Impact,sans-serif">z</text>`,
-        think: `<circle cx="-9" cy="0" r="5" fill="#3cff7a"/><circle cx="9" cy="0" r="5" fill="#3cff7a"/><rect x="-5" y="12" width="10" height="2.5" fill="#3cff7a"/>`,
-        laugh: `<path d="M-14 0 Q-9 -8 -4 0" stroke="#3cff7a" stroke-width="3" fill="none"/><path d="M4 0 Q9 -8 14 0" stroke="#3cff7a" stroke-width="3" fill="none"/><path d="M-10 9 Q0 22 10 9Z" fill="#3cff7a"/>`,
-        love: `<text x="-16" y="5" font-size="14">❤</text><text x="2" y="5" font-size="14">❤</text><path d="M-6 12 Q0 18 6 12" stroke="#3cff7a" stroke-width="2.5" fill="none"/>`,
+        happy: E(-11, 0, 7) + E(11, 0, 7) + `<path d="M-6 13 Q0 19 6 13" stroke="#3cff7a" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+        excited: `<path d="M-18 1 Q-11 -9 -4 1" stroke="#3cff7a" stroke-width="3.2" fill="none" stroke-linecap="round"/><path d="M4 1 Q11 -9 18 1" stroke="#3cff7a" stroke-width="3.2" fill="none" stroke-linecap="round"/><path d="M-9 10 Q0 22 9 10Z" fill="#3cff7a"/>`,
+        surprised: E(-11, 0, 9) + E(11, 0, 9) + `<circle cx="0" cy="15" r="4.5" fill="#3cff7a"/>`,
+        worried: `<circle cx="-11" cy="0" r="7" fill="#ffd166"/><circle cx="11" cy="0" r="7" fill="#ffd166"/><circle cx="-13" cy="-2" r="2" fill="#fff"/><circle cx="9" cy="-2" r="2" fill="#fff"/><path d="M-6 17 Q0 11 6 17" stroke="#ffd166" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+        mad: `<path d="M-18 -8 L-5 -3 M18 -8 L5 -3" stroke="#ff5252" stroke-width="3.2" stroke-linecap="round"/><circle cx="-11" cy="2" r="5.5" fill="#ff5252"/><circle cx="11" cy="2" r="5.5" fill="#ff5252"/><path d="M-6 17 Q0 11 6 17" stroke="#ff5252" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+        sly: `<rect x="-18" y="-2" width="14" height="4.5" rx="2" fill="#3cff7a"/><rect x="4" y="-2" width="14" height="4.5" rx="2" fill="#3cff7a"/><path d="M-6 11 Q3 18 9 9" stroke="#3cff7a" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+        sleepy: `<path d="M-18 0 Q-11 7 -4 0 M4 0 Q11 7 18 0" stroke="#3cff7a" stroke-width="3.2" fill="none" stroke-linecap="round"/><text x="20" y="-16" font-size="13" fill="#3cff7a" font-family="Bangers,Impact,sans-serif">z</text>`,
+        think: E(-11, 0, 7) + E(11, 0, 7) + `<rect x="-5" y="13" width="10" height="2.6" rx="1.3" fill="#3cff7a"/>`,
+        laugh: `<path d="M-18 1 Q-11 -9 -4 1" stroke="#3cff7a" stroke-width="3.2" fill="none" stroke-linecap="round"/><path d="M4 1 Q11 -9 18 1" stroke="#3cff7a" stroke-width="3.2" fill="none" stroke-linecap="round"/><path d="M-11 9 Q0 24 11 9Z" fill="#3cff7a"/>`,
+        love: `<text x="-19" y="6" font-size="16">❤</text><text x="3" y="6" font-size="16">❤</text><path d="M-6 13 Q0 19 6 13" stroke="#3cff7a" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
       };
-      const armP = {
-        down: ["M-20 -40 L-30 -14", "M20 -40 L30 -14"], up: ["M-20 -40 L-34 -72", "M20 -40 L34 -72"],
-        point: ["M-20 -40 L-30 -14", "M20 -40 L52 -50"], think: ["M-20 -40 L-30 -14", "M20 -40 L16 -66"],
-        wave: ["M-20 -40 L-30 -14", "M20 -40 L38 -72"], hips: ["M-20 -40 L-34 -22 L-20 -18", "M20 -40 L34 -22 L20 -18"],
-        run: ["M-20 -40 L-36 -56", "M20 -40 L38 -30"], hold: ["M-20 -40 L-18 -14", "M20 -40 L18 -14"], cheer: ["M-20 -40 L-40 -70", "M20 -40 L40 -70"],
-      };
-      const [a, b] = armP[pose] || armP.down;
-      const arm = (d) => `<path d="${d}" stroke="#222" stroke-width="12" fill="none" stroke-linecap="round"/><path d="${d}" stroke="${dark}" stroke-width="8" fill="none" stroke-linecap="round"/>`;
-      const claw = (d) => { const m = d.match(/L\s*(-?[\d.]+)\s+(-?[\d.]+)\s*$/); return `<circle cx="${m[1]}" cy="${m[2]}" r="6" fill="${metal}" stroke="#222" stroke-width="2"/>`; };
+      const tail = `M-22 -34 Q-64 -30 -54 -76`;
       return `
         <g>
-          <path d="M-22 -30 Q-70 -20 -60 -70" stroke="#222" stroke-width="16" fill="none" stroke-linecap="round"/>
-          <path d="M-22 -30 Q-70 -20 -60 -70" stroke="${metal}" stroke-width="12" fill="none" stroke-linecap="round"/>
-          ${[.25, .55, .85].map((t) => { const x = -22 + (-60 + 22) * t - 10 * Math.sin(t * 3), y = -30 + (-70 + 30) * t + 8; return `<circle cx="${x}" cy="${y}" r="7" fill="${dark}"/>`; }).join("")}
-          ${arm(a)}${arm(b)}
-          <rect x="-24" y="-56" width="48" height="52" rx="14" fill="${metal}" stroke="#222" stroke-width="3"/>
-          <rect x="-12" y="-44" width="24" height="26" rx="6" fill="#e9edf3" stroke="#222" stroke-width="2"/>
-          <circle cx="0" cy="-31" r="6" fill="#ff5252" stroke="#222" stroke-width="2"/>
-          <rect x="-20" y="-6" width="16" height="8" rx="3" fill="${dark}" stroke="#222" stroke-width="2"/><rect x="4" y="-6" width="16" height="8" rx="3" fill="${dark}" stroke="#222" stroke-width="2"/>
-          ${claw(a)}${claw(b)}
-          <g transform="translate(0 -78)">
-            <line x1="0" y1="-26" x2="0" y2="-42" stroke="#222" stroke-width="3"/><circle cx="0" cy="-45" r="5" fill="#ffd166" stroke="#222" stroke-width="2"/>
-            <path d="M-26 -14 L-30 -30 L-12 -20Z M26 -14 L30 -30 L12 -20Z" fill="${metal}" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
-            <rect x="-28" y="-24" width="56" height="46" rx="18" fill="${metal}" stroke="#222" stroke-width="3"/>
-            <path d="M-26 -8 Q-14 -18 -2 -8 L0 -6 L2 -8 Q14 -18 26 -8 L26 6 Q14 12 2 6 L0 8 L-2 6 Q-14 12 -26 6Z" fill="#2c3440" stroke="#222" stroke-width="2"/>
-            <ellipse cx="0" cy="16" rx="8" ry="5" fill="#2c3440"/>
+          <path d="${tail}" stroke="${INK}" stroke-width="19" fill="none" stroke-linecap="round"/>
+          <path d="${tail}" stroke="url(#mtl)" stroke-width="14" fill="none" stroke-linecap="round"/>
+          ${[.3, .6, .88].map((t) => { const x = -22 + (-54 + 22) * t - 12 * Math.sin(t * 3), y = -34 + (-76 + 34) * t + 10; return `<ellipse cx="${x}" cy="${y}" rx="7.5" ry="6" fill="url(#mtlD)"/>`; }).join("")}
+          ${arms(pose, "#d7dde8", "#5b6472", 24, -48, 7.5)}
+          <rect x="-13" y="-8" width="16" height="10" rx="5" fill="url(#mtlD)" stroke="${INK}" stroke-width="2.4"/><rect x="-3" y="-8" width="16" height="10" rx="5" fill="url(#mtlD)" stroke="${INK}" stroke-width="2.4"/>
+          <path d="M-26 -60 Q-32 -10 0 -6 Q32 -10 26 -60 Q0 -72 -26 -60Z" fill="url(#mtl)" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>
+          <rect x="-13" y="-52" width="26" height="22" rx="7" fill="#eaf6ff" stroke="${INK}" stroke-width="2.2"/>
+          <path d="M-9 -38 L-4 -44 L0 -36 L4 -46 L9 -40" stroke="#3cff7a" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <circle cx="0" cy="-20" r="5.5" fill="#ff5e5e" stroke="${INK}" stroke-width="2.2"/><circle cx="-1.5" cy="-21.5" r="1.6" fill="#fff" opacity=".8"/>
+          <g transform="translate(0 ${hy})">
+            <line x1="0" y1="-26" x2="0" y2="-40" stroke="${INK}" stroke-width="3"/><circle cx="0" cy="-44" r="5.5" fill="#ffd166" stroke="${INK}" stroke-width="2.2"/><circle cx="-1.5" cy="-45.5" r="1.8" fill="#fff" opacity=".9"/>
+            <path d="M-30 -12 Q-36 -32 -18 -30 Q-10 -26 -12 -18Z M30 -12 Q36 -32 18 -30 Q10 -26 12 -18Z" fill="url(#mtl)" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>
+            <path d="M-26 -10 Q-22 -28 0 -28 Q22 -28 26 -10 Q30 8 24 20 Q12 28 0 28 Q-12 28 -24 20 Q-30 8 -26 -10Z" fill="url(#mtl)" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>
+            <path d="M-27 -6 Q-14 -18 -2 -8 L0 -6 L2 -8 Q14 -18 27 -6 Q28 6 24 10 Q12 14 2 8 L0 6 L-2 8 Q-12 14 -24 10 Q-28 6 -27 -6Z" fill="#2c3440" stroke="${INK}" stroke-width="2"/>
+            <ellipse cx="0" cy="18" rx="6" ry="4" fill="#2c3440"/><ellipse cx="-2" cy="17" rx="2" ry="1.2" fill="#fff" opacity=".6"/>
+            <ellipse cx="-12" cy="-16" rx="7" ry="3.5" fill="#fff" opacity=".35"/>
             ${eyes[mood] || eyes.happy}
           </g>
         </g>`;
     },
-    zoe(mood, pose) {
-      const skin = "#e9b98c", hood = "#8e44ad";
-      return `
-        <g transform="translate(0 -128)">
-          ${arms(pose, skin, hood)}
-          <rect x="-22" y="0" width="44" height="58" rx="12" fill="${hood}" stroke="#222" stroke-width="3"/>
-          <path d="M-22 6 Q0 20 22 6" stroke="#6c3483" stroke-width="3" fill="none"/>
-          <rect x="-8" y="30" width="16" height="18" rx="3" fill="#6c3483" stroke="#222" stroke-width="2"/>
-          <rect x="-20" y="56" width="18" height="36" rx="4" fill="#2c3e50" stroke="#222" stroke-width="3"/>
-          <rect x="2" y="56" width="18" height="36" rx="4" fill="#2c3e50" stroke="#222" stroke-width="3"/>
-          <rect x="-24" y="90" width="24" height="24" rx="2" fill="${skin}" stroke="#222" stroke-width="3"/>
-          <rect x="0" y="90" width="24" height="24" rx="2" fill="${skin}" stroke="#222" stroke-width="3"/>
-          <rect x="-26" y="112" width="26" height="14" rx="5" fill="#fff" stroke="#222" stroke-width="3"/>
-          <rect x="0" y="112" width="26" height="14" rx="5" fill="#fff" stroke="#222" stroke-width="3"/>
-          <g transform="translate(0 -20)">
-            <path d="M20 -10 Q44 -30 40 10 Q30 30 22 12Z" fill="#3e2723" stroke="#222" stroke-width="3"/>
-            <circle cx="0" cy="0" r="24" fill="${skin}" stroke="#222" stroke-width="3"/>
-            <path d="M-26 -4 Q-24 -32 0 -30 Q24 -32 26 -4 Q20 -18 0 -16 Q-20 -18 -26 -4Z" fill="#3e2723" stroke="#222" stroke-width="3"/>
-            ${face(mood)}
-          </g>
-        </g>`;
-    },
     cat(mood) {
-      const e = mood === "sly" ? `<path d="M-12 -4 L-4 -4 M4 -4 L12 -4" stroke="#222" stroke-width="3"/>` :
-        mood === "surprised" ? `<circle cx="-8" cy="-4" r="6" fill="#fff" stroke="#222" stroke-width="2"/><circle cx="8" cy="-4" r="6" fill="#fff" stroke="#222" stroke-width="2"/><circle cx="-8" cy="-4" r="3" fill="#222"/><circle cx="8" cy="-4" r="3" fill="#222"/>` :
-          `<circle cx="-8" cy="-4" r="5" fill="#c8e64c" stroke="#222" stroke-width="2"/><circle cx="8" cy="-4" r="5" fill="#c8e64c" stroke="#222" stroke-width="2"/><ellipse cx="-8" cy="-4" rx="1.5" ry="4" fill="#222"/><ellipse cx="8" cy="-4" rx="1.5" ry="4" fill="#222"/>`;
+      const O = "#f5a742", D = "#d9822b";
+      const e = mood === "sly" ? `<path d="M-14 -3 L-4 -3 M4 -3 L14 -3" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>` :
+        mood === "surprised" ? eye(-9, -3, 7, 7.5, 0, 0) + eye(9, -3, 7, 7.5, 0, 0) :
+          `<ellipse cx="-9" cy="-3" rx="6" ry="6.5" fill="#c8e64c" stroke="${INK}" stroke-width="2.2"/><ellipse cx="9" cy="-3" rx="6" ry="6.5" fill="#c8e64c" stroke="${INK}" stroke-width="2.2"/><ellipse cx="-9" cy="-3" rx="2" ry="4.5" fill="${INK}"/><ellipse cx="9" cy="-3" rx="2" ry="4.5" fill="${INK}"/><circle cx="-10.5" cy="-5" r="1.4" fill="#fff"/><circle cx="7.5" cy="-5" r="1.4" fill="#fff"/>`;
       return `
-        <g transform="translate(0 -30)">
-          <path d="M22 4 Q50 0 44 -30" stroke="#222" stroke-width="12" fill="none" stroke-linecap="round"/>
-          <path d="M22 4 Q50 0 44 -30" stroke="#f39c12" stroke-width="8" fill="none" stroke-linecap="round"/>
-          <ellipse cx="0" cy="8" rx="30" ry="20" fill="#f39c12" stroke="#222" stroke-width="3"/>
-          <path d="M-14 0 Q-8 -8 -2 0 M6 0 Q12 -8 18 0" stroke="#c0392b" stroke-width="3" fill="none"/>
-          ${[-18, -6, 6, 18].map((x) => `<rect x="${x - 4}" y="22" width="8" height="10" rx="3" fill="#f39c12" stroke="#222" stroke-width="2"/>`).join("")}
-          <g transform="translate(-6 -18)">
-            <path d="M-20 -8 L-22 -30 L-6 -16Z M20 -8 L22 -30 L6 -16Z" fill="#f39c12" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
-            <circle cx="0" cy="0" r="22" fill="#f39c12" stroke="#222" stroke-width="3"/>
-            <path d="M-14 -20 L-10 -10 M14 -20 L10 -10" stroke="#c0392b" stroke-width="3"/>
+        <g>
+          <path d="M22 -14 Q54 -12 46 -46" stroke="${INK}" stroke-width="13" fill="none" stroke-linecap="round"/>
+          <path d="M22 -14 Q54 -12 46 -46" stroke="${O}" stroke-width="9" fill="none" stroke-linecap="round"/>
+          <path d="M32 -14 Q36 -20 30 -22 M40 -24 Q46 -28 42 -34" stroke="${D}" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <ellipse cx="0" cy="-18" rx="30" ry="18" fill="${O}" stroke="${INK}" stroke-width="${SW}"/>
+          <path d="M-8 -34 Q-2 -26 2 -34 M8 -32 Q14 -24 18 -32" stroke="${D}" stroke-width="3" fill="none" stroke-linecap="round"/>
+          ${[-18, -6, 6, 18].map((x) => `<ellipse cx="${x}" cy="-4" rx="6" ry="5" fill="${O}" stroke="${INK}" stroke-width="2.2"/>`).join("")}
+          <g transform="translate(-6 -44)">
+            <path d="M-22 -8 Q-26 -32 -6 -22Z M22 -8 Q26 -32 6 -22Z" fill="${O}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>
+            <path d="M-19 -10 Q-20 -24 -9 -18Z M19 -10 Q20 -24 9 -18Z" fill="#ffc9a3"/>
+            <circle cx="0" cy="0" r="24" fill="${O}" stroke="${INK}" stroke-width="${SW}"/>
+            <path d="M-12 -20 Q-9 -12 -6 -18 M12 -20 Q9 -12 6 -18 M0 -24 Q0 -16 2 -20" stroke="${D}" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <ellipse cx="-9" cy="-9" rx="7" ry="3.5" fill="#fff" opacity=".3"/>
             ${e}
-            <path d="M-3 6 L3 6 L0 10Z" fill="#e57373" stroke="#222" stroke-width="1.5"/>
-            <path d="M0 10 Q-5 15 -9 12 M0 10 Q5 15 9 12" stroke="#222" stroke-width="2" fill="none"/>
-            <path d="M-22 4 L-34 2 M-22 8 L-34 10 M22 4 L34 2 M22 8 L34 10" stroke="#222" stroke-width="1.5"/>
-            <path d="M-24 -26 L24 -26 L20 -34 L14 -46 L-14 -46 L-20 -34Z" fill="#2c3e50" stroke="#222" stroke-width="2.5"/>
-            <rect x="-20" y="-36" width="40" height="5" fill="#e74c3c"/>
-          </g>
-        </g>`;
-    },
-    dull(mood, pose) {
-      const skin = "#e6c39c", suit = "#616161";
-      return `
-        <g transform="translate(0 -150)">
-          ${arms(pose, skin, suit)}
-          <rect x="-18" y="0" width="36" height="66" rx="8" fill="${suit}" stroke="#222" stroke-width="3"/>
-          <path d="M-4 0 L0 30 L4 0Z" fill="#c62828" stroke="#222" stroke-width="1.5"/>
-          <rect x="-17" y="64" width="16" height="50" rx="3" fill="#424242" stroke="#222" stroke-width="3"/>
-          <rect x="1" y="64" width="16" height="50" rx="3" fill="#424242" stroke="#222" stroke-width="3"/>
-          <rect x="-22" y="112" width="22" height="12" rx="4" fill="#212121" stroke="#222" stroke-width="3"/>
-          <rect x="0" y="112" width="22" height="12" rx="4" fill="#212121" stroke="#222" stroke-width="3"/>
-          <g transform="translate(0 -22)">
-            <ellipse cx="0" cy="0" rx="20" ry="26" fill="${skin}" stroke="#222" stroke-width="3"/>
-            <path d="M-20 -8 Q-18 -30 0 -28 Q18 -30 20 -8 Q10 -20 0 -18 Q-10 -20 -20 -8Z" fill="#9e9e9e" stroke="#222" stroke-width="2.5"/>
-            ${face(mood === "happy" ? "mad" : mood)}
-            <path d="M-12 8 Q-6 3 0 8 Q6 3 12 8 Q6 10 0 9 Q-6 10 -12 8Z" fill="#616161" stroke="#222" stroke-width="1.5"/>
-          </g>
-        </g>`;
-    },
-    mom(mood, pose) {
-      const skin = "#f6c9a0", top = "#ff7043";
-      return `
-        <g transform="translate(0 -142)">
-          ${arms(pose, skin, top)}
-          <rect x="-20" y="0" width="40" height="60" rx="10" fill="${top}" stroke="#222" stroke-width="3"/>
-          <rect x="-18" y="58" width="36" height="50" rx="4" fill="#5c6bc0" stroke="#222" stroke-width="3"/>
-          <rect x="-22" y="106" width="20" height="12" rx="4" fill="#212121" stroke="#222" stroke-width="3"/>
-          <rect x="2" y="106" width="20" height="12" rx="4" fill="#212121" stroke="#222" stroke-width="3"/>
-          <g transform="translate(0 -22)">
-            <path d="M-28 10 Q-30 -34 0 -32 Q30 -34 28 10 L20 14 Q26 -20 0 -20 Q-26 -20 -20 14Z" fill="#e0771a" stroke="#222" stroke-width="3"/>
-            <circle cx="0" cy="0" r="24" fill="${skin}" stroke="#222" stroke-width="3"/>
-            ${face(mood)}
+            <path d="M-3.5 6 L3.5 6 L0 10Z" fill="#e57373" stroke="${INK}" stroke-width="1.5"/>
+            <path d="M0 10 Q-5 15 -9 12 M0 10 Q5 15 9 12" stroke="${INK}" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M-24 4 L-36 2 M-24 8 L-36 10 M24 4 L36 2 M24 8 L36 10" stroke="${INK}" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="-16" cy="6" r="4" fill="#ff8aa8" opacity=".4"/><circle cx="16" cy="6" r="4" fill="#ff8aa8" opacity=".4"/>
+            <path d="M-34 -18 Q0 -26 34 -18 Q34 -14 30 -13 Q0 -20 -30 -13 Q-34 -14 -34 -18Z" fill="#2c3e50" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>
+            <path d="M-22 -20 L-19 -40 Q0 -50 19 -40 L22 -20 Q0 -26 -22 -20Z" fill="#2c3e50" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>
+            <path d="M-20 -28 Q0 -33 20 -28" stroke="#e74c3c" stroke-width="4" fill="none"/>
+            <path d="M-8 -44 Q0 -48 6 -44" stroke="#5d6d7e" stroke-width="2" fill="none"/>
           </g>
         </g>`;
     },
@@ -424,7 +405,7 @@
     const fxBefore = spec.fx === "dark" || spec.fx === "rain" ? fx : "";
     const fxAfter = fxBefore ? "" : fx;
     const bubble = spec.bubble ? drawBubble(spec.bubble) : "";
-    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="panel-art" role="img" aria-label="${esc(spec.alt || "comic panel")}">
+    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="panel-art" role="img" aria-label="${esc(spec.alt || "comic panel")}">${DEFS}
       ${bg}${fxBefore}${spec.propsBehind ? props : ""}${cast}${spec.propsBehind ? "" : props}${bubble}${fxAfter}</svg>`;
   }
 
@@ -441,13 +422,13 @@
   /* portrait: head-only avatar for dialogue tags */
   function portrait(who, mood) {
     const draw = CHAR[who] || CHAR.max;
-    const yOff = { max: 130, bolt: 78, zoe: 150, cat: 48, dull: 172, mom: 164 }[who] || 130;
-    return `<svg viewBox="-34 -34 68 68" class="portrait" xmlns="http://www.w3.org/2000/svg"><clipPath id="pc"><circle r="33"/></clipPath>
+    const yOff = { max: 95, bolt: 94, zoe: 112, cat: 44, dull: 126, mom: 118 }[who] || 95;
+    return `<svg viewBox="-34 -34 68 68" class="portrait" xmlns="http://www.w3.org/2000/svg">${DEFS}<clipPath id="pc"><circle r="33"/></clipPath>
       <g clip-path="url(#pc)"><circle r="34" fill="${{ max: HERO.gender === "girl" ? "#ffd1e8" : "#ffe66d", bolt: "#7fe0ff", zoe: "#f4b6ff", cat: "#ffd9a0", dull: "#d0d0d0", mom: "#ffc9b8" }[who] || "#eee"}"/>
-      <g transform="translate(0 ${yOff}) scale(1.05)">${draw(mood || "happy", "down")}</g></g></svg>`;
+      <g transform="translate(0 ${yOff * .9}) scale(.9)">${draw(mood || "happy", "down")}</g></g></svg>`;
   }
 
   const NAMES = { max: "Max", bolt: "Bolt", zoe: "Zoe", cat: "Mr. Whiskers", dull: "Dr. Dullsworth", mom: "Mom", narrator: "" };
 
-  window.Art = { panel, portrait, NAMES, setHero, HERO, BG: Object.keys(BG), CHARS: Object.keys(CHAR) };
+  window.Art = { panel, portrait, NAMES, setHero, HERO, BG: Object.keys(BG), CHARS: Object.keys(CHAR), draw: (who, mood, pose) => (CHAR[who] || CHAR.max)(mood || "happy", pose || "down"), defs: DEFS };
 })();

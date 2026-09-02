@@ -17,8 +17,8 @@
 */
 
 // 👉 CUSTOMIZE: rename to your app, and bump CACHE_VERSION per deploy (e.g. a build stamp).
-const CACHE_VERSION = "20260902-092626";
-const ASSET_VERSION  = "20260902-092626";
+const CACHE_VERSION = "20260902-095415";
+const ASSET_VERSION  = "20260902-095415";
 const CACHE_NAME    = `maxbolt-${CACHE_VERSION}`;
 
 // 👉 CUSTOMIZE: the offline shell, precached at install. Relative paths (resolved against
