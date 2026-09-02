@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#ffd93d"/>
+  <circle cx="256" cy="256" r="200" fill="#fff8e7" stroke="#1b1b1f" stroke-width="14"/>
+  <g transform="translate(256 400) scale(2.7)">
+    <path d="M-22 -30 Q-70 -20 -60 -70" stroke="#222" stroke-width="16" fill="none" stroke-linecap="round"/>
+    <path d="M-22 -30 Q-70 -20 -60 -70" stroke="#c6ccd8" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <circle cx="-37" cy="-33" r="7" fill="#5b6472"/><circle cx="-50" cy="-43" r="7" fill="#5b6472"/><circle cx="-58" cy="-58" r="7" fill="#5b6472"/>
+    <path d="M-20 -40 L-40 -70" stroke="#222" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M-20 -40 L-40 -70" stroke="#5b6472" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M20 -40 L40 -70" stroke="#222" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M20 -40 L40 -70" stroke="#5b6472" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <rect x="-24" y="-56" width="48" height="52" rx="14" fill="#c6ccd8" stroke="#222" stroke-width="3"/>
+    <rect x="-12" y="-44" width="24" height="26" rx="6" fill="#e9edf3" stroke="#222" stroke-width="2"/>
+    <circle cx="0" cy="-31" r="6" fill="#ff5252" stroke="#222" stroke-width="2"/>
+    <circle cx="-40" cy="-70" r="6" fill="#c6ccd8" stroke="#222" stroke-width="2"/><circle cx="40" cy="-70" r="6" fill="#c6ccd8" stroke="#222" stroke-width="2"/>
+    <g transform="translate(0 -78)">
+      <line x1="0" y1="-26" x2="0" y2="-42" stroke="#222" stroke-width="3"/><circle cx="0" cy="-45" r="5" fill="#ffd166" stroke="#222" stroke-width="2"/>
+      <path d="M-26 -14 L-30 -30 L-12 -20Z M26 -14 L30 -30 L12 -20Z" fill="#c6ccd8" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
+      <rect x="-28" y="-24" width="56" height="46" rx="18" fill="#c6ccd8" stroke="#222" stroke-width="3"/>
+      <path d="M-26 -8 Q-14 -18 -2 -8 L0 -6 L2 -8 Q14 -18 26 -8 L26 6 Q14 12 2 6 L0 8 L-2 6 Q-14 12 -26 6Z" fill="#2c3440" stroke="#222" stroke-width="2"/>
+      <ellipse cx="0" cy="16" rx="8" ry="5" fill="#2c3440"/>
+      <path d="M-14 0 Q-9 -8 -4 0" stroke="#3cff7a" stroke-width="3" fill="none"/><path d="M4 0 Q9 -8 14 0" stroke="#3cff7a" stroke-width="3" fill="none"/><path d="M-8 10 Q0 20 8 10Z" fill="#3cff7a"/>
+    </g>
+  </g>
+</svg>

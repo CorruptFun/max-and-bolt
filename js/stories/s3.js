@@ -1,0 +1,100 @@
+/* Season 3 — 3rd grade. Paragraphs, dialogue tags, adjectives, cause and effect. ~220–260 words. */
+(function () {
+  const S = (window.STORIES = window.STORIES || []);
+
+  S.push({
+    id: "s3e1", season: 3, num: 1, title: "The Pancake Flipper 3000",
+    blurb: "It pours. It flips. It plays a little song. Nobody asked for the song.",
+    cover: { bg: "kitchen", cast: [{ who: "max", mood: "worried", pose: "hold", x: 35 }, { who: "bolt", mood: "happy", x: 68, flip: true }], props: [{ e: "🥞", x: 68, y: 40, s: 44 }, { e: "🥞", x: 30, y: 12, s: 44, r: 180 }], fx: "whoosh" },
+    vocab: { spatula: "A flat tool for flipping food.", batter: "The wet mix that turns into pancakes.", hummed: "Made a low, steady sound.", nervous: "Worried about what will happen.", calmly: "In a quiet, relaxed way." },
+    pages: [
+      { art: { bg: "kitchen", cast: [{ who: "max", mood: "think", pose: "think", x: 35 }, { who: "bolt", mood: "worried", x: 70, flip: true }], props: [{ e: "🎂", x: 15, y: 40, s: 40 }] },
+        lines: [{ n: "Tomorrow was Mom's birthday, and Max wanted to make her breakfast. There was just one problem. Max had never cooked anything, and the last time Bolt touched the stove, the smoke alarm sang for an hour." }] },
+      { art: { bg: "garage", cast: [{ who: "max", mood: "excited", pose: "point", x: 30 }, { who: "bolt", mood: "happy", pose: "hold", x: 70, flip: true }], props: [{ e: "🍳", x: 52, y: 40, s: 40 }, { e: "🛞", x: 88, y: 76, s: 44 }] },
+        lines: [{ w: "max", t: "We need a machine." }, { n: "{He} grabbed a spatula, a spring from an old bed, and a bicycle wheel. Bolt handed {him} a roll of tape without being asked. They were a great team." }] },
+      { art: { bg: "garage", cast: [{ who: "max", mood: "sleepy", x: 25 }, { who: "bolt", mood: "excited", pose: "cheer", x: 75, flip: true }], props: [{ e: "🎵", x: 62, y: 30, s: 30 }, { e: "🎶", x: 80, y: 22, s: 30 }, { e: "🥞", x: 50, y: 74, s: 46 }], fx: "dark" },
+        lines: [{ n: "By midnight, the Pancake Flipper 3000 was finished. It could pour batter, flip pancakes, and play a little song. Bolt had added the song. Nobody asked for the song." }] },
+      { art: { bg: "kitchen", cast: [{ who: "max", mood: "think", pose: "think", x: 50 }], props: [{ e: "🥞", x: 20, y: 40, s: 36 }, { e: "🥞", x: 80, y: 40, s: 36 }] },
+        math: { intro: "How many pancakes should the machine make?", q: "Mom, Zoe, and Max each want 4 pancakes. Bolt does not eat. How many pancakes is that?", answer: "12", choices: ["7", "9", "12", "16"], hint: "3 people times 4 pancakes. 4 + 4 + 4 = 12.", success: "Twelve pancakes! Max set the dial to 12. The machine hummed happily." } },
+      { art: { bg: "kitchen", cast: [{ who: "max", mood: "surprised", pose: "point", x: 35 }, { who: "bolt", mood: "surprised", x: 70, flip: true }], props: [{ e: "🥞", x: 50, y: 8, s: 50, r: 180 }, { e: "🟢", x: 15, y: 62, s: 26 }], fx: "whoosh" },
+        lines: [{ n: "In the morning, Max pushed the big green button. The machine hummed. It poured. It flipped. It flipped a little too hard. The first pancake stuck to the ceiling with a wet SMACK." }] },
+      { art: { bg: "kitchen", cast: [{ who: "bolt", mood: "happy", x: 35 }, { who: "cat", mood: "sly", x: 82, y: 92, scale: .8 }], props: [{ e: "🥞", x: 35, y: 44, s: 40 }, { e: "🥞", x: 76, y: 60, s: 36, r: 30 }] },
+        lines: [{ n: "The second pancake landed on Bolt's head like a hat. The third one flew out the window. Mr. Whiskers caught it and walked away without a word." }] },
+      { art: { bg: "kitchen", cast: [{ who: "zoe", mood: "mad", pose: "up", x: 25 }, { who: "max", mood: "worried", pose: "hold", x: 55 }, { who: "bolt", mood: "happy", x: 82, flip: true, scale: .9 }], props: [{ e: "🥞", x: 25, y: 30, s: 36 }, { e: "🥞", x: 62, y: 20, s: 36, r: 45 }] },
+        lines: [{ w: "zoe", t: "Turn it off!" }, { n: "shouted Zoe, ducking under a pancake." }, { w: "max", t: "I'm trying!" }, { n: "Max yelled back. Bolt calmly ate a pancake he had no way to eat. Nobody has explained how." }] },
+      { art: { bg: "kitchen", cast: [{ who: "mom", mood: "surprised", x: 30 }, { who: "max", mood: "worried", pose: "hold", x: 70, flip: true }], props: [{ e: "🥞", x: 60, y: 8, s: 44, r: 180 }, { e: "🥞", x: 85, y: 90, s: 36 }, { e: "🍳", x: 70, y: 66, s: 32 }] },
+        lines: [{ n: "Mom walked in wearing her robe. She looked at the ceiling. She looked at the floor. She looked at her {son}, who was holding a spatula and smiling in a very nervous way." }] },
+      { art: { bg: "kitchen", cast: [{ who: "mom", mood: "laugh", pose: "up", x: 35 }, { who: "max", mood: "laugh", x: 68, flip: true }, { who: "bolt", mood: "excited", x: 88, flip: true, scale: .8 }], props: [{ e: "🥞", x: 35, y: 30, s: 36 }], fx: "hearts" },
+        lines: [{ w: "max", t: "Happy birthday." }, { n: "Mom laughed so hard she had to sit down. Then she ate a pancake off the ceiling." }, { w: "mom", t: "Best breakfast ever." }, { n: "And she meant it." }] },
+    ],
+    quiz: [
+      { q: "Why did Max build the machine?", c: ["To make Mom a birthday breakfast", "To feed the cat", "To win a prize", "Because he was bored"], a: 0 },
+      { q: "Where did the first pancake land?", c: ["On Bolt's head", "On the ceiling", "Out the window", "On Zoe"], a: 1 },
+      { q: "How did Mom feel about the mess?", c: ["Angry", "Scared", "She thought it was funny", "Sleepy"], a: 2 },
+    ],
+  });
+
+  S.push({
+    id: "s3e2", season: 3, num: 2, title: "Operation Whiskers",
+    blurb: "A tracking collar. A bell. Two very bad ninjas. One cat who is done with all of this.",
+    cover: { bg: "night", cast: [{ who: "max", mood: "sly", pose: "run", x: 30, scale: .9 }, { who: "bolt", mood: "sly", pose: "run", x: 55, scale: .9 }, { who: "cat", mood: "sly", x: 85, y: 92, scale: .8 }], fx: "dark" },
+    vocab: { proof: "Something that shows a thing is true.", suspicious: "Seeming like something sneaky is going on.", crept: "Moved slowly and quietly.", classified: "Secret. Not allowed to be shared.", trapdoor: "A hidden door in a floor." },
+    pages: [
+      { art: { bg: "room", cast: [{ who: "max", mood: "think", pose: "point", x: 35 }, { who: "bolt", mood: "happy", x: 70, flip: true }], props: [{ e: "🗺️", x: 15, y: 70, s: 44 }] },
+        lines: [{ n: "Max had a map, a plan, and a robot. What {he} did not have was proof." }, { w: "max", t: "Nobody believes the cat is a spy. So we will follow him and find out." }] },
+      { art: { bg: "garage", cast: [{ who: "bolt", mood: "excited", pose: "hold", x: 40 }, { who: "max", mood: "think", x: 75, flip: true }], props: [{ e: "🔔", x: 40, y: 60, s: 36 }, { e: "⌚", x: 62, y: 76, s: 36 }] },
+        lines: [{ n: "Bolt built a tiny tracking collar out of a watch and a bell." }, { w: "bolt", t: "The bell is so we can hear him. Spies hate bells." }, { n: "Max was not sure that was true, but {he} liked the bell." }] },
+      { art: { bg: "room", cast: [{ who: "cat", mood: "sly", x: 50, y: 92, scale: 1.1 }, { who: "max", mood: "sly", pose: "hold", x: 15, scale: .8 }, { who: "bolt", mood: "sly", x: 85, flip: true, scale: .8 }], props: [{ e: "🔔", x: 50, y: 70, s: 24 }] },
+        lines: [{ n: "They put the collar on Mr. Whiskers while he was napping. He opened one eye, looked at them for a long time, and went back to sleep. That was suspicious." }] },
+      { art: { bg: "night", cast: [{ who: "max", mood: "worried", pose: "run", x: 30, scale: .9 }, { who: "bolt", mood: "worried", pose: "run", x: 55, scale: .9 }], props: [{ e: "🛖", x: 85, y: 70, s: 70 }] },
+        math: { intro: "They sneak toward the shed.", q: "The shed is 24 steps from the house. Max and Bolt sneak halfway, then stop to hide. How many steps have they taken?", answer: "12", choices: ["6", "12", "24", "48"], hint: "Half of 24. Split 24 into two equal parts: 12 and 12.", success: "Twelve steps. Twelve more to go. Bolt's bell was NOT helping them sneak." } },
+      { art: { bg: "night", cast: [{ who: "cat", mood: "sly", x: 78, y: 92, scale: .8 }, { who: "max", mood: "sly", x: 22, scale: .8 }, { who: "bolt", mood: "sly", x: 40, scale: .8 }], props: [{ e: "🌳", x: 30, y: 70, s: 90 }, { e: "🔔", x: 78, y: 74, s: 20 }] },
+        lines: [{ n: "At sunset, the bell rang. Mr. Whiskers slipped out the cat door and trotted straight to the shed. Max and Bolt crept after him, hiding behind every bush like two very bad ninjas." }] },
+      { art: { bg: "lab", cast: [{ who: "max", mood: "surprised", pose: "point", x: 25 }, { who: "bolt", mood: "surprised", x: 55, flip: true }, { who: "dull", mood: "mad", x: 82, y: 40, scale: .45 }], props: [{ e: "⭕", x: 82, y: 25, s: 60 }] },
+        lines: [{ n: "Inside the shed, the floor slid open. Stairs went down into a glowing room full of screens. On the biggest screen was a picture of Dr. Dullsworth with a red circle around his face." }] },
+      { art: { bg: "lab", cast: [{ who: "bolt", mood: "excited", pose: "point", x: 30 }, { who: "cat", mood: "sly", x: 70, y: 92, scale: 1.1 }], props: [{ e: "🎧", x: 70, y: 66, s: 26 }], bubble: { text: "CLASSIFIED", x: 50, y: 18 } },
+        lines: [{ w: "bolt", t: "I knew it!" }, { n: "Bolt whispered, a little too loud. Mr. Whiskers turned around. He was wearing a tiny headset. He pressed a button, and a wall of screens showed one word: CLASSIFIED." }] },
+      { art: { bg: "yard", cast: [{ who: "max", mood: "surprised", pose: "up", x: 35, y: 96 }, { who: "bolt", mood: "surprised", pose: "up", x: 65, y: 96, flip: true }], props: [{ e: "🍂", x: 30, y: 92, s: 40 }, { e: "🍂", x: 70, y: 94, s: 40 }, { e: "🍂", x: 50, y: 98, s: 40 }], fx: "dark" },
+        lines: [{ n: "A trapdoor opened under Max and Bolt. They slid down a long tube and landed in a pile of leaves in their own backyard. The shed door was locked. The bell was gone." }] },
+      { art: { bg: "night", cast: [{ who: "max", mood: "think", x: 35 }, { who: "bolt", mood: "worried", pose: "hold", x: 68, flip: true }], props: [{ e: "🃏", x: 68, y: 62, s: 30 }] },
+        lines: [{ w: "max", t: "Did that just happen?" }, { n: "Bolt nodded slowly. Then he pulled a small card out of his chest. It said: 'Nice try, kids. Stay out of the shed. — W.'" }] },
+    ],
+    quiz: [
+      { q: "What did Bolt put on the collar?", c: ["A camera", "A bell", "A light", "A snack"], a: 1 },
+      { q: "Whose picture was on the big screen?", c: ["Max", "Mom", "Dr. Dullsworth", "Bolt"], a: 2 },
+      { q: "What did the card tell them to do?", c: ["Come back tomorrow", "Feed the cat", "Bring a bell", "Stay out of the shed"], a: 3 },
+    ],
+  });
+
+  S.push({
+    id: "s3e3", season: 3, num: 3, title: "The Shrink Ray Mistake",
+    blurb: "Max was building a flashlight. Bolt is now the size of a grape.",
+    cover: { bg: "jungle", cast: [{ who: "bolt", mood: "worried", pose: "up", x: 50, y: 95, scale: .8 }], props: [{ e: "🐜", x: 20, y: 80, s: 60 }, { e: "🦗", x: 82, y: 75, s: 70 }] },
+    vocab: { creatively: "In a new and unusual way.", furious: "Very, very angry.", boulder: "A huge rock.", panicking: "So scared you cannot think.", dew: "Tiny drops of water on grass in the morning." },
+    pages: [
+      { art: { bg: "garage", cast: [{ who: "max", mood: "surprised", pose: "hold", x: 35 }, { who: "bolt", mood: "sly", x: 70, flip: true }], props: [{ e: "🔦", x: 35, y: 60, s: 40, r: -20 }] },
+        lines: [{ n: "Max did not mean to build a shrink ray. {He} was trying to build a flashlight. But Bolt had connected the wires 'creatively,' and now the flashlight made things small." }] },
+      { art: { bg: "garage", cast: [{ who: "bolt", mood: "worried", pose: "up", x: 65, flip: true }, { who: "max", mood: "happy", pose: "point", x: 30 }], props: [{ e: "🔦", x: 44, y: 62, s: 36 }], fx: "zap" },
+        lines: [{ w: "bolt", t: "Do NOT point that at me." }, { n: "Max turned around to answer him. The shrink ray was still in {his} hand. There was a soft ZIP, and Bolt was the size of a grape." }] },
+      { art: { bg: "yard", cast: [{ who: "max", mood: "worried", pose: "think", x: 30 }, { who: "bolt", mood: "mad", pose: "up", x: 70, y: 96, scale: .3 }] },
+        lines: [{ w: "bolt", t: "You did point it at me!" }, { n: "squeaked Bolt. His voice was tiny and furious. Max carried him outside to find the ray's reverse switch, which {he} had dropped somewhere in the grass. To Bolt, the grass was a jungle." }] },
+      { art: { bg: "jungle", cast: [{ who: "bolt", mood: "worried", x: 30, y: 95, scale: .8 }], props: [{ e: "🦗", x: 70, y: 70, s: 70 }] },
+        math: { intro: "A grasshopper keeps jumping over Bolt.", q: "The grasshopper jumps 4 times. Each jump is 8 inches long. How many inches did it jump in all?", answer: "32", choices: ["12", "24", "32", "36"], hint: "4 groups of 8. 8 + 8 + 8 + 8 = 32.", success: "Thirty-two inches! Then it licked its own eye. Bolt did not enjoy that." } },
+      { art: { bg: "jungle", cast: [{ who: "bolt", mood: "worried", pose: "hips", x: 45, y: 95, scale: .8 }], props: [{ e: "🪲", x: 15, y: 82, s: 80 }, { e: "🐜", x: 80, y: 84, s: 60 }, { e: "🍪", x: 80, y: 66, s: 40 }] },
+        lines: [{ n: "A beetle the size of a truck rolled past. An ant marched by carrying a crumb like a boulder. A grasshopper stared at Bolt, then licked its own eye." }, { w: "bolt", t: "I do not like it here." }] },
+      { art: { bg: "jungle", cast: [{ who: "bolt", mood: "surprised", pose: "up", x: 30, y: 95, scale: .8 }], props: [{ e: "👟", x: 72, y: 60, s: 130, r: 20 }], fx: "shake" },
+        lines: [{ n: "Then the ground shook. BOOM. BOOM. A giant purple sneaker came down right next to Bolt. It was Zoe, walking to the mailbox and looking at her phone." }] },
+      { art: { bg: "yard", cast: [{ who: "zoe", mood: "surprised", pose: "hold", x: 60 }, { who: "max", mood: "worried", pose: "up", x: 20, scale: .9 }, { who: "bolt", mood: "mad", pose: "up", x: 78, y: 96, scale: .3 }], props: [{ e: "📱", x: 60, y: 62, s: 24 }] },
+        lines: [{ w: "max", t: "ZOE! STOP!" }, { n: "Zoe stopped with one foot in the air. She looked down. She saw a raccoon robot the size of a grape shaking a tiny fist at her." }, { w: "zoe", t: "Okay. I have questions." }] },
+      { art: { bg: "yard", cast: [{ who: "zoe", mood: "sly", pose: "point", x: 30 }, { who: "bolt", mood: "worried", x: 70, flip: true }], props: [{ e: "💧", x: 66, y: 60, s: 20 }, { e: "💧", x: 76, y: 70, s: 20 }], fx: "sparkle" },
+        lines: [{ n: "Zoe found the reverse switch in about four seconds, because she was not panicking. One click later, Bolt was normal size, sitting in the grass, covered in dew." }, { w: "bolt", t: "I was never scared." }, { n: "He was shaking." }] },
+      { art: { bg: "garage", cast: [{ who: "max", mood: "happy", pose: "hold", x: 35 }, { who: "bolt", mood: "mad", pose: "point", x: 70, flip: true }], props: [{ e: "📦", x: 35, y: 78, s: 60 }, { e: "⛔", x: 35, y: 78, s: 26 }] },
+        lines: [{ n: "Max put the shrink ray in a box, and the box in a bigger box, and wrote DO NOT on it in big letters. Bolt added: 'ESPECIALLY AT ME.'" }] },
+    ],
+    quiz: [
+      { q: "What was Max trying to build?", c: ["A shrink ray", "A flashlight", "A robot", "A bike"], a: 1 },
+      { q: "Who almost stepped on Bolt?", c: ["Max", "Mom", "Zoe", "Dr. Dullsworth"], a: 2 },
+      { q: "Why did Zoe find the switch so fast?", c: ["She had a map", "She was not panicking", "Bolt told her", "It was glowing"], a: 1 },
+    ],
+  });
+})();

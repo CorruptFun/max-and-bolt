@@ -1,0 +1,16 @@
+{
+  "name": "Max & Bolt — Reading Adventures",
+  "short_name": "Max & Bolt",
+  "description": "A comic-book reading adventure that grows from 1st grade to 7th grade.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fff8e7",
+  "theme_color": "#ffd93d",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
