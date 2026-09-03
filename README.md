@@ -13,6 +13,9 @@ After each story's own math a "bonus part" is generated at that level; three fir
 a miss eases half a band. **Bolt's Workshop:** a 60-second blast at the adaptive level (or any fixed band).
 **Reader profiles:** several kids on one device, each with their own name, progress, hero (Max or Maxie),
 and look (classic or pink). **Season 0 "First Words"** is a Pre-K on-ramp: 2–4 word pages, counting to 5.
+**Spelling:** parents paste the week's list from school; the kid practices with letter tiles and takes a hear-it-spell-it
+test, and the words glow inside stories. **Daily missions:** three small goals a day for bonus XP. **The quiz is the
+proof of reading:** under 2 of 3, or an impossible reading speed, means "read it again" before the next story opens.
 **Word Vault:** the words tapped for help and the vocab collected. **Parents (⚙️, gated by a times-table
 question):** WPM trend chart, quiz / math accuracy, 14-day activity, most-tapped words, a level
 recommendation, math-level easier/harder, unlock override, hero/theme/start settings, toggles, and a
@@ -38,7 +41,7 @@ It bumps the service-worker version, stamps every `?v=` asset URL, syntax-checks
 Append to the right `js/stories/s<N>.js`. A story is `{ id, season, num, title, blurb, cover, vocab,
 pages, quiz }`. A page is either `{ art, lines: [{ n: "narration" } | { w: "max", t: "speech" }] }` or
 `{ art, math: { intro, q, answer, choices, hint, success } }`. `art` is a panel spec —
-`{ bg, cast: [{ who, mood, pose, x, y, scale, flip }], props: [{ e: "🚀", x, y, s, r }], fx, bubble }`.
+`{ bg, cast: [{ who, mood, pose, x, y, scale, flip }], props: [{ p: "rocket", x, y, s, r }], fx, bubble }`.
 Write pronouns that refer to the hero as `{he} {He} {his} {His} {him} {himself} {son}` — they render as
 she/her for a girl-hero profile, and every bare `Max` becomes the profile's hero name automatically.
 Pronouns for Bolt, the cat, Dr. Dullsworth etc. stay plain. See `BRIEF.md` for the writing rules per

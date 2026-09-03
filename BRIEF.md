@@ -36,6 +36,21 @@ The timer only runs on reading pages — math pages are thinking time.
   (about 3× the season's goal pace, 20–90 s; Pre-K gets it at once). Tapping a word always says it.
   Parents choose wait / always / never in the dashboard; every use is counted (`history[].helped`).
 - ◀ goes back a page. Words count once per page; the clock runs on every visit. A solved math page stays solved.
+- **The quiz is the proof of reading.** 2 of 3 first-try answers passes. Under that, or faster than 2.5× the grade's
+  WPM goal (that's tapping NEXT, not reading), the story is *not done*: no sticker, no unlock, no first-finish bonus,
+  and the results screen has one button — "Read it again". XP for the words still pays. Parents can switch the gate off.
+
+## Spelling words (js/app.js SPELLING)
+- A parent pastes the week's list from school (one per line, optional `word: hint sentence`) in the dashboard.
+- Kid side: **Practice** = look at the word (🔊), hide it, build it from letter tiles (its letters + 2 look-alike
+  decoys); wrong shows the fix letter by letter, then try again. **Test** = hear it (or read the hint), spell it on a
+  26-key board, one shot per word; scored and kept in `spelling.tests[]` for the parent view.
+- Mastery dots = times in a row spelled right (max 3). Spelling words glow inside stories; tapping one opens a
+  spell-it-out card, and every one that appears in a story pays +5 XP at the end.
+
+## Daily missions
+Three a day on the home screen — read a story, pass a quiz with 2+ stars, practice 5 spelling words (or 5 math parts
+when there's no list) — +50 XP the moment all three are done. Counted from `days[today]` (`stories pass spell math`).
 
 ## Rules that keep it fun
 - Nothing is a fail state. Wrong answers get a hint and another try; stars are for first-try answers.

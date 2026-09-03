@@ -105,7 +105,7 @@
     return profile.mathLevel;
   }
 
-  const STICKERS = { s0e1: "👋", s0e2: "🎈", s0e3: "🔢", s1e1: "🤖", s1e2: "🚲", s1e3: "🐱", s1e4: "✨", s1e5: "☂️", s1e6: "🥨", s1e7: "🎈", s1e8: "📦",
+  const STICKERS = { s0e1: "👋", s0e2: "🎈", s0e3: "🔢", s1e1: "🤖", s1e2: "🚲", s1e3: "🐱", s1e4: "✨", s1e5: "🎩", s1e6: "🥨", s1e7: "🎈", s1e8: "📦",
     s2e1: "🫧", s2e2: "📎", s2e3: "🚀", s2e4: "🐕", s2e5: "⛺", s2e6: "🍋", s3e1: "🥞", s3e2: "🕵️", s3e3: "🐜", s4e1: "⚡", s4e2: "📡", s5e1: "📼", s5e2: "🛩️", s6e1: "🌧️", s6e2: "🗂️", s7e1: "🏆" };
 
   window.Content = { SEASONS, MAX_SEASON, season, RANKS, rankFor, STICKERS,
