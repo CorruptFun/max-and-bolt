@@ -26,9 +26,7 @@
       <rect x="0" y="198" width="400" height="6" fill="#6f6f6f"/>
       <rect x="20" y="40" width="130" height="90" rx="4" fill="#8c6b4a" stroke="#5b432c" stroke-width="3"/>
       ${[0, 1, 2].map((i) => `<rect x="30" y="${50 + i * 26}" width="110" height="6" fill="#5b432c"/>`).join("")}
-      <text x="40" y="70" font-size="18">🔧</text><text x="70" y="70" font-size="18">🧲</text><text x="100" y="70" font-size="18">🔩</text>
-      <text x="40" y="96" font-size="18">🔋</text><text x="70" y="96" font-size="18">🧪</text><text x="100" y="96" font-size="18">📦</text>
-      <text x="40" y="122" font-size="18">🪛</text><text x="70" y="122" font-size="18">🧰</text><text x="100" y="122" font-size="18">💡</text>
+      ${[["wrench", 46, 64], ["magnet", 78, 64], ["bolt", 110, 64], ["battery", 46, 90], ["flask", 78, 90], ["box", 110, 90], ["screwdriver", 46, 116], ["toolbox", 78, 116], ["bulb", 110, 116]].map(([n, x, y]) => bp(n, x, y, 20)).join("")}
       <rect x="250" y="20" width="120" height="110" rx="4" fill="#fff6c8" stroke="#d3b95a" stroke-width="3"/>
       <path d="M262 110 L290 50 L310 90 L335 40 L358 110Z" fill="none" stroke="#3a6cc8" stroke-width="3" stroke-linejoin="round"/>
       <text x="270" y="42" font-size="14" font-family="Bangers,Impact,sans-serif" fill="#3a6cc8">PLAN B</text>
@@ -49,7 +47,7 @@
     room: () => `
       <rect width="400" height="300" fill="#f5e9ff"/>
       <rect x="0" y="0" width="400" height="210" fill="#cfe4ff"/>
-      ${[40, 120, 200, 280, 360].map((x) => `<text x="${x}" y="40" font-size="16">⭐</text><text x="${x - 30}" y="100" font-size="16">🚀</text>`).join("")}
+      ${[40, 120, 200, 280, 360].map((x) => bp("star", x + 6, 34, 16, "#ffe66d") + bp("rocket", x - 24, 94, 18)).join("")}
       <rect x="0" y="210" width="400" height="90" fill="#c7a27a"/>
       <rect x="240" y="120" width="140" height="90" rx="6" fill="#3a6cc8" stroke="#22467f" stroke-width="3"/>
       <rect x="240" y="120" width="140" height="30" rx="6" fill="#ff6b6b" stroke="#22467f" stroke-width="3"/>
@@ -64,7 +62,7 @@
       <rect x="20" y="126" width="360" height="8" fill="#e4e4e4" stroke="#999" stroke-width="2"/>
       <rect x="300" y="30" width="70" height="100" rx="6" fill="#f4f4f4" stroke="#999" stroke-width="3"/>
       <rect x="300" y="70" width="70" height="4" fill="#999"/>
-      <text x="60" y="110" font-size="30">🍞</text><text x="110" y="110" font-size="30">🥛</text><text x="160" y="110" font-size="30">🍕</text>`,
+      ${bp("bread", 66, 100, 26)}${bp("milk", 116, 98, 28)}${bp("pizza", 168, 100, 28)}`,
     street: () => `
       <rect width="400" height="300" fill="#a9e2ff"/>
       ${cloud(80, 50, .8)}${cloud(310, 60, .6)}
@@ -95,7 +93,7 @@
       <path d="M0 260 Q60 240 120 260 T240 260 T360 260 T480 260 V300 H0Z" fill="#d9c39a"/>
       <path d="M40 260 Q45 200 50 260 M60 262 Q70 210 80 262" stroke="#2e8b57" stroke-width="6" fill="none" stroke-linecap="round"/>
       <path d="M320 262 Q325 205 335 262 M345 262 Q350 215 360 262" stroke="#2e8b57" stroke-width="6" fill="none" stroke-linecap="round"/>
-      <text x="200" y="120" font-size="24">🐠</text><text x="90" y="80" font-size="20">🐟</text>`,
+      ${bp("fish", 208, 112, 26)}${bp("fish", 98, 74, 20, "#4d96ff")}`,
     night: () => `
       <rect width="400" height="300" fill="#1a1f4d"/>
       ${Array.from({ length: 30 }, (_, i) => `<circle cx="${(i * 89) % 400}" cy="${(i * 53) % 170}" r="${1 + (i % 2)}" fill="#fff"/>`).join("")}
@@ -119,7 +117,7 @@
       <rect x="0" y="200" width="400" height="100" fill="#7f8c9a"/>
       ${[0, 1, 2, 3, 4, 5, 6, 7].map((i) => `<rect x="${i * 50 + 5}" y="20" width="40" height="80" fill="#aac5d6" stroke="#5f7d92" stroke-width="2"/>`).join("")}
       <rect x="30" y="120" width="340" height="80" fill="#f4f4f4" stroke="#7f8c9a" stroke-width="3"/>
-      <text x="50" y="112" font-size="34">🧪</text><text x="100" y="112" font-size="34">⚗️</text><text x="150" y="112" font-size="34">🔬</text><text x="300" y="112" font-size="34">🧫</text>
+      ${bp("jar", 58, 100, 30)}${bp("flask", 108, 100, 32)}${bp("microscope", 158, 98, 34)}${bp("dish", 308, 100, 30)}
       <rect x="180" y="40" width="120" height="70" rx="6" fill="#111" stroke="#5f7d92" stroke-width="3"/>
       <text x="196" y="82" font-size="16" font-family="monospace" fill="#3cff7a">SYSTEM OK_</text>`,
     jungle: () => `
@@ -129,7 +127,7 @@
       <rect x="40" y="100" width="18" height="160" fill="#6b3418"/><rect x="330" y="110" width="18" height="150" fill="#6b3418"/>
       <path d="M58 100 Q120 140 100 200" stroke="#2e7d32" stroke-width="8" fill="none"/>
       <rect x="0" y="240" width="400" height="60" fill="#4caf50"/>
-      <text x="160" y="90" font-size="28">🦜</text><text x="250" y="140" font-size="26">🐒</text>`,
+      ${bp("parrot", 170, 82, 30)}${bp("monkey", 262, 132, 30)}`,
     snow: () => `
       <rect width="400" height="300" fill="#cfe9ff"/>
       ${Array.from({ length: 30 }, (_, i) => `<circle cx="${(i * 83) % 400}" cy="${(i * 47) % 200}" r="2.5" fill="#fff"/>`).join("")}
@@ -154,9 +152,14 @@
       <rect width="400" height="300" fill="#2d2d3a"/>
       <path d="M0 0 H400 V80 Q350 120 300 70 Q250 130 200 80 Q150 130 100 70 Q50 120 0 80Z" fill="#1a1a24"/>
       <path d="M0 300 V230 Q60 200 90 250 Q120 210 160 260 Q220 210 260 250 Q320 200 360 250 Q380 220 400 240 V300Z" fill="#1a1a24"/>
-      <text x="180" y="150" font-size="26">💎</text><text x="60" y="130" font-size="22">🦇</text>`,
+      ${bp("gem", 188, 144, 26)}${bp("bat", 70, 124, 26)}`,
   };
 
+  /* a drawn prop inside a background (falls back to nothing when the prop library isn't loaded, e.g. the icon script) */
+  function bp(name, x, y, s, c) {
+    const g = window.Props && window.Props.draw({ p: name, c }, s);
+    return g ? `<g transform="translate(${x} ${y})">${g}</g>` : "";
+  }
   function cloud(x, y, s) {
     return `<g transform="translate(${x} ${y}) scale(${s})" fill="#fff" stroke="#cfe5f2" stroke-width="2">
       <ellipse cx="0" cy="0" rx="40" ry="18"/><circle cx="-18" cy="-8" r="16"/><circle cx="8" cy="-14" r="20"/><circle cx="26" cy="-4" r="14"/></g>`;
@@ -302,7 +305,7 @@
         sleepy: `<path d="M-18 0 Q-11 7 -4 0 M4 0 Q11 7 18 0" stroke="#3cff7a" stroke-width="3.2" fill="none" stroke-linecap="round"/><text x="20" y="-16" font-size="13" fill="#3cff7a" font-family="Bangers,Impact,sans-serif">z</text>`,
         think: E(-11, 0, 7) + E(11, 0, 7) + `<rect x="-5" y="13" width="10" height="2.6" rx="1.3" fill="#3cff7a"/>`,
         laugh: `<path d="M-18 1 Q-11 -9 -4 1" stroke="#3cff7a" stroke-width="3.2" fill="none" stroke-linecap="round"/><path d="M4 1 Q11 -9 18 1" stroke="#3cff7a" stroke-width="3.2" fill="none" stroke-linecap="round"/><path d="M-11 9 Q0 24 11 9Z" fill="#3cff7a"/>`,
-        love: `<text x="-19" y="6" font-size="16">❤</text><text x="3" y="6" font-size="16">❤</text><path d="M-6 13 Q0 19 6 13" stroke="#3cff7a" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+        love: `${[-11, 11].map((x) => `<path transform="translate(${x} 0) scale(.22)" d="M0 34 Q-40 8 -36 -14 Q-32 -36 -12 -32 Q-2 -30 0 -18 Q2 -30 12 -32 Q32 -36 36 -14 Q40 8 0 34Z" fill="#ff5e9e" stroke="${INK}" stroke-width="6"/>`).join("")}<path d="M-6 13 Q0 19 6 13" stroke="#3cff7a" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
       };
       const tail = `M-22 -34 Q-64 -30 -54 -76`;
       return `
@@ -371,7 +374,7 @@
     speed: `<g stroke="#222" stroke-width="3" opacity=".5">${[0, 1, 2, 3, 4, 5].map((i) => `<line x1="0" y1="${60 + i * 40}" x2="${80 + (i % 3) * 30}" y2="${60 + i * 40}"/>`).join("")}</g>`,
     shake: `<g stroke="#222" stroke-width="3" fill="none">${[[70, 90], [330, 100], [200, 60]].map(([x, y]) => `<path d="M${x - 14} ${y} Q${x - 7} ${y - 10} ${x} ${y} T${x + 14} ${y}"/>`).join("")}</g>`,
     stink: `<g stroke="#8bc34a" stroke-width="4" fill="none" stroke-linecap="round" opacity=".9">${[160, 200, 240].map((x) => `<path d="M${x} 150 Q${x - 10} 130 ${x} 110 T${x} 70"/>`).join("")}</g>`,
-    hearts: `<g>${[[80, 70], [300, 60], [180, 40], [340, 150]].map(([x, y]) => `<text x="${x}" y="${y}" font-size="26">💖</text>`).join("")}</g>`,
+    hearts: `<g fill="#ff5e9e" stroke="${INK}" stroke-width="2.4" stroke-linejoin="round">${[[80, 70, 1], [300, 60, .8], [180, 40, .6], [340, 150, .7]].map(([x, y, k]) => `<path transform="translate(${x} ${y}) scale(${k * .4})" d="M0 34 Q-40 8 -36 -14 Q-32 -36 -12 -32 Q-2 -30 0 -18 Q2 -30 12 -32 Q32 -36 36 -14 Q40 8 0 34Z"/>`).join("")}</g>`,
     rain: `<g stroke="#5fa8d3" stroke-width="2" stroke-linecap="round">${Array.from({ length: 40 }, (_, i) => `<line x1="${(i * 53) % 400}" y1="${(i * 37) % 260}" x2="${(i * 53) % 400 - 3}" y2="${(i * 37) % 260 + 12}"/>`).join("")}</g>`,
     dark: `<rect width="400" height="300" fill="#000" opacity=".55"/>`,
   };
@@ -384,6 +387,17 @@
     return "M" + pts.join(" L") + "Z";
   }
 
+  /* something on a character's head: cast { hat: "bighat" | "cap" | ... , hatC: colour, hatS: size }. Drawn from the
+     prop library, sat on the crown of that character (feet at 0,0). */
+  const CROWN = { max: [0, -128], bolt: [0, -120], zoe: [0, -146], mom: [0, -152], dull: [0, -150], cat: [-6, -84] };
+  function wear(c) {
+    if (!c.hat || !window.Props) return "";
+    const [hx, hy] = CROWN[c.who] || CROWN.max;
+    const s = c.hatS || 70;
+    const g = window.Props.draw({ p: c.hat, c: c.hatC }, s);
+    return g ? `<g transform="translate(${hx} ${hy - s * .18})">${g}</g>` : "";
+  }
+
   /* ---------- panel assembly ---------- */
   function panel(spec) {
     spec = spec || {};
@@ -394,12 +408,14 @@
       const y = (c.y == null ? 92 : c.y) / 100 * H;
       const s = (c.scale || 1) * (c.who === "cat" ? .9 : 1);
       const flip = c.flip ? -1 : 1;
-      return `<g transform="translate(${x} ${y}) scale(${s * flip} ${s})">${draw(c.mood || "happy", c.pose || "down")}</g>`;
+      return `<g transform="translate(${x} ${y}) scale(${s * flip} ${s})">${draw(c.mood || "happy", c.pose || "down")}${wear(c)}</g>`;
     }).join("");
     const props = (spec.props || []).map((p) => {
       const x = (p.x == null ? 50 : p.x) / 100 * W, y = (p.y == null ? 60 : p.y) / 100 * H;
       const s = p.s || 40;
-      return `<text x="${x}" y="${y}" font-size="${s}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${p.r || 0} ${x} ${y})">${esc(p.e)}</text>`;
+      const drawn = window.Props && window.Props.draw(p, s);
+      if (drawn) return `<g transform="translate(${x} ${y}) rotate(${p.r || 0})${p.flip ? " scale(-1 1)" : ""}">${drawn}</g>`;
+      return `<text x="${x}" y="${y}" font-size="${s}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${p.r || 0} ${x} ${y})">${esc(p.e || "")}</text>`;
     }).join("");
     const fx = FX[spec.fx] || "";
     const fxBefore = spec.fx === "dark" || spec.fx === "rain" ? fx : "";

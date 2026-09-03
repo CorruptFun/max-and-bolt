@@ -28,13 +28,13 @@
   S.push({
     id: "s0e2", season: 0, num: 2, title: "Red, Blue, Green",
     blurb: "Three balloons. One pop. Who has one more?",
-    cover: { bg: "park", cast: [{ who: "bolt", mood: "happy", pose: "hold", x: 50 }], props: [{ e: "🎈", x: 40, y: 30, s: 60 }, { e: "🔵", x: 60, y: 22, s: 50 }, { e: "🟢", x: 78, y: 35, s: 50 }] },
+    cover: { bg: "park", cast: [{ who: "bolt", mood: "happy", pose: "hold", x: 50 }], props: [{ e: "🎈", x: 40, y: 30, s: 60 }, { p: "balloon", c: "#4d96ff", x: 60, y: 22, s: 50 }, { p: "balloon", c: "#3fb64f", x: 78, y: 35, s: 50 }] },
     vocab: { pop: "A quick bang, like a balloon breaking.", more: "Another one; extra." },
     pages: [
       { art: { bg: "park", cast: [{ who: "max", mood: "happy", pose: "up", x: 50 }], props: [{ e: "🎈", x: 62, y: 30, s: 70 }] }, lines: [{ n: "A red balloon." }] },
-      { art: { bg: "park", cast: [{ who: "max", mood: "happy", pose: "up", x: 50 }], props: [{ e: "🎈", x: 62, y: 30, s: 70 }, { e: "🔵", x: 30, y: 25, s: 60 }] }, lines: [{ n: "A blue balloon." }] },
-      { art: { bg: "park", cast: [{ who: "max", mood: "excited", pose: "up", x: 50 }], props: [{ e: "🎈", x: 62, y: 30, s: 70 }, { e: "🔵", x: 30, y: 25, s: 60 }, { e: "🟢", x: 85, y: 40, s: 60 }] }, lines: [{ n: "A green balloon." }] },
-      { art: { bg: "park", cast: [{ who: "bolt", mood: "think", pose: "point", x: 30 }], props: [{ e: "🎈", x: 62, y: 30, s: 60 }, { e: "🔵", x: 78, y: 45, s: 50 }, { e: "🟢", x: 68, y: 70, s: 50 }] },
+      { art: { bg: "park", cast: [{ who: "max", mood: "happy", pose: "up", x: 50 }], props: [{ e: "🎈", x: 62, y: 30, s: 70 }, { p: "balloon", c: "#4d96ff", x: 30, y: 25, s: 60 }] }, lines: [{ n: "A blue balloon." }] },
+      { art: { bg: "park", cast: [{ who: "max", mood: "excited", pose: "up", x: 50 }], props: [{ e: "🎈", x: 62, y: 30, s: 70 }, { p: "balloon", c: "#4d96ff", x: 30, y: 25, s: 60 }, { p: "balloon", c: "#3fb64f", x: 85, y: 40, s: 60 }] }, lines: [{ n: "A green balloon." }] },
+      { art: { bg: "park", cast: [{ who: "bolt", mood: "think", pose: "point", x: 30 }], props: [{ e: "🎈", x: 62, y: 30, s: 60 }, { p: "balloon", c: "#4d96ff", x: 78, y: 45, s: 50 }, { p: "balloon", c: "#3fb64f", x: 68, y: 70, s: 50 }] },
         math: { intro: "Count with Bolt.", q: "How many balloons?", answer: "3", choices: ["2", "3", "4", "5"], hint: "Red, blue, green. One, two, three.", success: "Three balloons!" } },
       { art: { bg: "park", cast: [{ who: "bolt", mood: "surprised", pose: "up", x: 50 }], fx: "boom" }, lines: [{ n: "Pop!" }] },
       { art: { bg: "park", cast: [{ who: "bolt", mood: "worried", x: 50 }], fx: "rain" }, lines: [{ n: "Bolt is sad." }] },

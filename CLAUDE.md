@@ -8,5 +8,7 @@
   budget from BRIEF.md. Every story has ≥1 in-plot math page, 3 quiz questions (one inference), 4–6 vocab.
 - Kid screens stay big-button and low-text; analytics go behind the parent gate only.
 - Deploy: `scripts/deploy.sh "msg"` (bumps SW version + stamps asset URLs; push to main is the deploy).
+- Panel props are drawn SVG in `js/props.js` (`{ p: "name" }`, or `hat:` on a character) — no emoji in art.
+  New emoji in a story spec = add a drawing + an `EMOJI` entry, never ship the glyph.
 - Icons: edit `scripts/icon.svg`, run `scripts/make-icons.sh`.
 - Family app: **no farm theming** (Austin's standing rule).

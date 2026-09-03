@@ -11,7 +11,7 @@ sed -i.bak -E "s/\?v=[A-Za-z0-9-]+\"/?v=${STAMP}\"/g" index.html
 rm -f sw.js.bak index.html.bak
 STAMPED="$(grep -c "?v=${STAMP}\"" index.html || true)"
 echo "→ CACHE_VERSION=${STAMP}, stamped ${STAMPED} asset URLs"
-[ "${STAMPED}" -ge 14 ] || { echo "✗ expected 14 stamped URLs, found ${STAMPED} — aborting"; exit 1; }
+[ "${STAMPED}" -ge 15 ] || { echo "✗ expected 15 stamped URLs, found ${STAMPED} — aborting"; exit 1; }
 node --check sw.js && node --check pwa-register.js && node --check js/app.js
 git add -A
 git diff --cached --quiet && { echo "Nothing to commit."; exit 0; }

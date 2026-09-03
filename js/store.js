@@ -8,7 +8,7 @@
     name: "", hero: "boy", heroName: "Max", theme: "classic", startSeason: 1,
     xp: 0, unlocked: 1, mathLevel: 1, mathLog: [],
     stories: {}, tapped: {}, vocab: {}, days: {}, stickers: [], workshop: {},
-    settings: { timer: true, tts: true, sfx: true, bonus: true },
+    settings: { timer: true, tts: true, sfx: true, bonus: true, readHelp: "wait" },
     createdAt: Date.now(),
   }, o || {});
   let root = null, temp = null;

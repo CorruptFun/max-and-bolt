@@ -27,7 +27,7 @@ const CACHE_NAME    = `maxbolt-${CACHE_VERSION}`;
 const PRECACHE = [
   "./", "./manifest.json", "./icon-192.png", "./icon-512.png",
   `./styles.css?v=${ASSET_VERSION}`,
-  ...["art", "content", "stories/s0", "stories/s1", "stories/s2", "stories/s3", "stories/s4", "stories/s5", "stories/s6", "stories/s7", "store", "tts", "app"]
+  ...["props", "art", "content", "stories/s0", "stories/s1", "stories/s2", "stories/s3", "stories/s4", "stories/s5", "stories/s6", "stories/s7", "store", "tts", "app"]
     .map((m) => `./js/${m}.js?v=${ASSET_VERSION}`),
 ];
 

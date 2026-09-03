@@ -241,15 +241,15 @@
   /* =====================================================================
      READER
      ===================================================================== */
-  let R = null, timerInt = null;
-  function readerLeave() { if (R && R.pageStart) { R.seconds += (Date.now() - R.pageStart) / 1000; R.pageStart = 0; } clearInterval(timerInt); timerInt = null; T.stop(); }
+  let R = null, timerInt = null, helpTO = null;
+  function readerLeave() { if (R && R.pageStart) { R.seconds += (Date.now() - R.pageStart) / 1000; R.pageStart = 0; } clearInterval(timerInt); timerInt = null; clearTimeout(helpTO); helpTO = null; T.stop(); }
   function fmtTime(s) { s = Math.round(s); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }
 
   screens.reader = function ({ id, page }) {
     const story = C.story(id);
     if (!story) return go("home", {}, true);
     const season = C.season(story.season);
-    R = { story, season, idx: page || 0, seconds: 0, pageStart: 0, words: 0, tapped: 0, mathFirst: 0, mathTotal: 0, quizFirst: 0, quizAnswers: [] };
+    R = { story, season, idx: page || 0, seconds: 0, pageStart: 0, words: 0, tapped: 0, helped: 0, mathFirst: 0, mathTotal: 0, quizFirst: 0, quizAnswers: [], counted: {}, seenMath: {}, solved: {} };
     document.documentElement.style.setProperty("--read-size", story.season === 0 ? "1.8rem" : story.season <= 2 ? "1.45rem" : story.season <= 4 ? "1.25rem" : "1.12rem");
     renderPage();
   };
@@ -287,6 +287,7 @@
     words.forEach((w) => { offsets.push(text.length); text += w.textContent + " "; });
     let last = -1;
     btn.disabled = true;
+    if (R) R.helped++;
     T.speak(text.trim(), {
       rate: R.story.season <= 2 ? .8 : .9,
       onWord(ci) {
@@ -297,6 +298,30 @@
       },
       onEnd() { if (last >= 0) words[last].classList.remove("hl"); btn.disabled = false; },
     });
+  }
+
+  /* Read-aloud is a helper, not a narrator: the page button only appears after the reader has had a fair go at
+     the page (about 3× the season's goal pace, 20–90 s). Pre-K pages are meant to be read with help, so they get it
+     right away. Tapping a single word always works. Parents can set "always" or "never" in the dashboard. */
+  function helpDelay(words) {
+    const mode = St.load().settings.readHelp || "wait";
+    if (mode === "never" || !T.available || !St.load().settings.tts) return -1;
+    if (mode === "always" || R.season.n === 0) return 0;
+    if (!words) return 30000;
+    return Math.min(90, Math.max(20, Math.round((words / R.season.wpm) * 60 * 3))) * 1000;
+  }
+  function armHelp(btn, words) {
+    const ms = helpDelay(words);
+    if (ms < 0) { btn.remove(); return; }
+    const show = () => { btn.hidden = false; btn.classList.add("pop"); };
+    if (ms === 0) show(); else helpTO = setTimeout(show, ms);
+  }
+  function navButtons(idx, total, isMath) {
+    return `<div class="reader-controls">
+        <button class="btn big" id="back" aria-label="Back" ${idx === 0 ? "disabled" : ""}>◀</button>
+        <button class="btn big help" id="read" hidden>🔊 Help me</button>
+        <button class="btn big primary" id="next" ${isMath ? "disabled" : ""}>${idx === total - 1 ? "FINISH ▶" : "NEXT ▶"}</button>
+      </div>`;
   }
 
   function renderPage() {
@@ -317,27 +342,36 @@
           <div id="feedback"></div>`
         : linesHtml(p.lines, story)}
       </div>
-      <div class="reader-controls">
-        <button class="btn big" id="read" title="Read to me" ${T.available ? "" : "disabled"}>🔊</button>
-        <button class="btn big primary" id="next" ${isMath ? "disabled" : ""}>${idx === total - 1 ? "FINISH ▶" : "NEXT ▶"}</button>
-      </div>
+      ${navButtons(idx, total, isMath && !R.solved[idx])}
     </div>`);
     T.SFX.page();
     const textEl = $("#text");
     bindWords(textEl, story);
     $("#exit").addEventListener("click", () => { T.SFX.tap(); go("season", { n: story.season }); });
-    $("#read").addEventListener("click", (e) => readAloud(isMath ? textEl : textEl, e.currentTarget));
+    $("#read").addEventListener("click", (e) => readAloud(textEl, e.currentTarget));
     $("#next").addEventListener("click", () => { T.SFX.tap(); readerLeave(); R.idx++; renderPage(); });
+    $("#back").addEventListener("click", () => { if (R.idx === 0) return; T.SFX.tap(); readerLeave(); R.idx--; renderPage(); });
 
-    // timing: count words + run the clock only on reading pages (math pages are thinking time, not reading speed)
+    // timing: count words + run the clock only on reading pages (math pages are thinking time, not reading speed).
+    // Words count once per page; the clock runs on every visit, so going back to re-read is honest reading time.
     if (!isMath) {
-      R.words += p.lines.reduce((n, l) => n + C.wordCount(l.n || l.t || ""), 0);
+      const pw = p.lines.reduce((n, l) => n + C.wordCount(l.n || l.t || ""), 0);
+      if (!R.counted[idx]) { R.words += pw; R.counted[idx] = true; }
       R.pageStart = Date.now();
       const tEl = $("#timer");
       timerInt = setInterval(() => { if (R && tEl) tEl.textContent = "⏱ " + fmtTime(R.seconds + (R.pageStart ? (Date.now() - R.pageStart) / 1000 : 0)); }, 500);
+      armHelp($("#read"), pw);
+    } else if (R.solved[idx]) {
+      // came back to a math page already answered: show it solved, no second try, no second bonus
+      $("#timer").textContent = "⏱ " + fmtTime(R.seconds);
+      $$(".choice").forEach((x) => { x.disabled = true; if (x.dataset.c === String(p.math.answer)) x.classList.add("right"); });
+      $("#feedback").innerHTML = `<div class="success">✅ ${wordsHtml(p.math.success || "Nice!", story)}</div>`;
+      bindWords($("#feedback"), story);
+      $("#read").remove();
     } else {
       $("#timer").textContent = "⏱ " + fmtTime(R.seconds);
-      let tries = 0; R.mathTotal++;
+      armHelp($("#read"), 0);
+      let tries = 0; if (!R.seenMath[idx]) { R.mathTotal++; R.seenMath[idx] = true; }
       $$(".choice").forEach((b) => b.addEventListener("click", () => {
         const ok = b.dataset.c === String(p.math.answer);
         tries++;
@@ -345,6 +379,7 @@
           T.SFX.right(); b.classList.add("right");
           $$(".choice").forEach((x) => x.disabled = true);
           if (tries === 1) R.mathFirst++;
+          R.solved[idx] = true;
           $("#feedback").innerHTML = `<div class="success">✅ ${wordsHtml(p.math.success || "Nice!", story)}</div>`;
           bindWords($("#feedback"), story);
           St.day().math++; St.save();
@@ -406,10 +441,17 @@
       <div class="card"><div class="q-label">📖 QUESTION ${qi + 1}</div><div class="question" id="qtext">${wordsHtml(q.q, story)}</div></div>
       <div class="choices" id="choices">${q.c.map((c, i) => `<button class="choice" data-i="${i}">${esc(H(c))}</button>`).join("")}</div>
       <div id="feedback"></div>
-      <div class="reader-controls"><button class="btn big" id="read" ${T.available ? "" : "disabled"}>🔊</button><button class="btn big primary" id="next" disabled>NEXT ▶</button></div>
+      <div class="reader-controls">
+        <button class="btn big" id="back" aria-label="Back to the story">◀</button>
+        <button class="btn big help" id="read" hidden>🔊 Help me</button>
+        <button class="btn big primary" id="next" disabled>NEXT ▶</button>
+      </div>
     </div>`);
     bindWords($("#qtext"), story);
-    $("#read").addEventListener("click", (e) => { const b = e.currentTarget; b.disabled = true; T.speak(H(q.q) + ". " + q.c.map((c, i) => `${["A", "B", "C", "D"][i]}: ${H(c)}`).join(". "), { onEnd: () => b.disabled = false }); });
+    armHelp($("#read"), 0);
+    $("#read").addEventListener("click", (e) => { const b = e.currentTarget; b.disabled = true; R.helped++; T.speak(H(q.q) + ". " + q.c.map((c, i) => `${["A", "B", "C", "D"][i]}: ${H(c)}`).join(". "), { onEnd: () => b.disabled = false }); });
+    // back into the story to check — answers already given stay given, the quiz picks up where it left off
+    $("#back").addEventListener("click", () => { T.SFX.tap(); readerLeave(); R.idx = story.pages.length - 1; renderPage(); });
     let tries = 0;
     $$(".choice").forEach((b) => b.addEventListener("click", () => {
       tries++;
@@ -436,7 +478,7 @@
     if (rec.reads > 0) xp = Math.round(xp * .6);   // re-reads still pay, just less
     rec.reads++; rec.done = true; rec.stars = Math.max(rec.stars, stars); rec.lastWpm = wpm; rec.bestWpm = Math.max(rec.bestWpm, wpm);
     rec.quizRight += R.quizFirst; rec.quizTotal += story.quiz.length; rec.mathFirst += R.mathFirst; rec.mathTotal += R.mathTotal; rec.lastAt = Date.now();
-    rec.history = (rec.history || []).concat([{ t: Date.now(), wpm, stars, tapped: R.tapped }]).slice(-20);
+    rec.history = (rec.history || []).concat([{ t: Date.now(), wpm, stars, tapped: R.tapped, helped: R.helped }]).slice(-20);
     d.xp += xp;
     const day = St.day(); day.words += R.words; day.seconds += Math.round(R.seconds); day.stories++;
     const newSticker = !d.stickers.includes(story.id); if (newSticker) d.stickers.push(story.id);
@@ -642,7 +684,7 @@
     const mR = done.reduce((n, s) => n + St.storyRec(s.id).mathFirst, 0), mT = done.reduce((n, s) => n + St.storyRec(s.id).mathTotal, 0);
     // WPM chart: every completed read in time order, with the season goal line
     const reads = [];
-    done.forEach((s) => (St.storyRec(s.id).history || []).forEach((h) => reads.push({ t: h.t, wpm: h.wpm, season: s.season, title: s.title })));
+    done.forEach((s) => (St.storyRec(s.id).history || []).forEach((h) => reads.push({ t: h.t, wpm: h.wpm, helped: h.helped || 0, season: s.season, title: s.title })));
     reads.sort((a, b) => a.t - b.t);
     const last = reads.slice(-16);
     const maxW = Math.max(60, ...last.map((r) => r.wpm), ...last.map((r) => C.season(r.season).wpm)) * 1.15;
@@ -674,7 +716,8 @@
         <div class="stat"><b>${mT ? Math.round((mR / mT) * 100) : 0}%</b><span>math 1st try</span></div>
         <div class="stat"><b>${St.streak()}</b><span>day streak</span></div>
       </div>
-      <div class="card"><h2>Reading speed</h2><div class="chart" style="overflow-x:auto">${chart}</div></div>
+      <div class="card"><h2>Reading speed</h2><div class="chart" style="overflow-x:auto">${chart}</div>
+        ${last.length ? `<div class="muted small" style="margin-top:6px">${(() => { const n = last.reduce((a, r) => a + r.helped, 0); return n ? `Tapped "Help me" (page read aloud) ${n} time${n === 1 ? "" : "s"} in the last ${last.length} read${last.length === 1 ? "" : "s"}.` : `Never used "Help me" (page read aloud) in the last ${last.length} read${last.length === 1 ? "" : "s"} — reading solo.`; })()}</div>` : ""}</div>
       <div class="card"><h2>Last 14 days</h2><div class="days">${days.join("")}</div></div>
       <div class="card"><h2>Words ${esc(d.name)} needed help with</h2><div class="chips">${topTapped.length ? topTapped.map(([w, n]) => `<span class="chip">${esc(w)}<small>×${n}</small></span>`).join("") : `<span class="muted">None tapped yet.</span>`}</div></div>
       <div class="card"><h2>Stories</h2><table class="table"><tr><th>Story</th><th>Stars</th><th>Best wpm</th><th>Quiz</th><th>Reads</th></tr>
@@ -696,7 +739,12 @@
         <div class="field" style="margin-top:10px"><label>Starting point</label><select id="startseason"><option value="0" ${d.startSeason === 0 ? "selected" : ""}>First words (Pre-K, Season 0)</option><option value="1" ${d.startSeason !== 0 ? "selected" : ""}>Short sentences (Season 1)</option></select></div>
         <div class="field" style="margin-top:10px"><label>Seasons unlocked through</label><select id="unlock">${C.SEASONS.filter((s) => s.n >= 1).map((s) => `<option value="${s.n}" ${s.n === d.unlocked ? "selected" : ""}>Season ${s.n} — ${s.grade}</option>`).join("")}</select></div>
         <div class="toggle" style="margin-top:8px">Show the reading timer <div class="switch ${d.settings.timer ? "on" : ""}" data-s="timer"></div></div>
-        <div class="toggle">Read-aloud voice <div class="switch ${d.settings.tts ? "on" : ""}" data-s="tts"></div></div>
+        <div class="toggle">Read-aloud voice (tap a word to hear it) <div class="switch ${d.settings.tts ? "on" : ""}" data-s="tts"></div></div>
+        <div class="field" style="margin-top:10px"><label>"Help me" button that reads the whole page</label><select id="readhelp">
+          <option value="wait" ${(d.settings.readHelp || "wait") === "wait" ? "selected" : ""}>Only after a fair try at reading it (recommended)</option>
+          <option value="always" ${d.settings.readHelp === "always" ? "selected" : ""}>Always available</option>
+          <option value="never" ${d.settings.readHelp === "never" ? "selected" : ""}>Never — words only</option></select>
+          <div class="muted small" style="margin-top:4px">Pre-K stories always offer it. The dashboard counts how often it gets used.</div></div>
         <div class="toggle">Sound effects <div class="switch ${d.settings.sfx ? "on" : ""}" data-s="sfx"></div></div>
       </div>
       <div class="card"><h2>Move progress to another device</h2>
@@ -714,6 +762,7 @@
     $("#theme").addEventListener("change", (e) => { d.theme = e.target.value; St.save(); applyProfile(); });
     $("#startseason").addEventListener("change", (e) => { d.startSeason = +e.target.value; St.save(); });
     $("#unlock").addEventListener("change", (e) => { d.unlocked = +e.target.value; St.save(); });
+    $("#readhelp").addEventListener("change", (e) => { d.settings.readHelp = e.target.value; St.save(); });
     $("#easier").addEventListener("click", () => { d.mathLevel = Math.max(0, Math.floor(d.mathLevel) - 1); St.save(); parentDash(); });
     $("#harder").addEventListener("click", () => { d.mathLevel = Math.min(C.BANDS.length - .01, Math.floor(d.mathLevel) + 1); St.save(); parentDash(); });
     $$(".switch").forEach((sw) => sw.addEventListener("click", () => { d.settings[sw.dataset.s] = !d.settings[sw.dataset.s]; sw.classList.toggle("on", d.settings[sw.dataset.s]); St.save(); }));

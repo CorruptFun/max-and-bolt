@@ -31,6 +31,12 @@ fun. Funny, adventurous, short. The app tracks fluency and comprehension without
 Word counts include the math pages' text (it is read too). WPM goals are spring-of-grade oral reading fluency norms (Hasbrouck & Tindal), ~50th percentile.
 The timer only runs on reading pages — math pages are thinking time.
 
+## Reading, not listening
+- The 🔊 whole-page voice is a *helper*: the "Help me" button only appears after a fair try at the page
+  (about 3× the season's goal pace, 20–90 s; Pre-K gets it at once). Tapping a word always says it.
+  Parents choose wait / always / never in the dashboard; every use is counted (`history[].helped`).
+- ◀ goes back a page. Words count once per page; the clock runs on every visit. A solved math page stays solved.
+
 ## Rules that keep it fun
 - Nothing is a fail state. Wrong answers get a hint and another try; stars are for first-try answers.
 - Re-reading is rewarded (60% XP) — fluency comes from re-reads, and the parent view says so.
@@ -50,7 +56,15 @@ same art by `scripts/make-icon.js` → `scripts/icon.svg` → `scripts/make-icon
 - `who`: max bolt zoe cat dull mom · `mood`: happy excited surprised worried mad sly sleepy think laugh
   (+ `love` for Bolt) · `pose`: down up point think wave hips run hold cheer
 - `fx`: boom zap splat whoosh sparkle speed shake stink hearts rain dark · `bubble: {text,x,y}` for a
-  sound word inside the panel · `props`: any emoji at x/y (percent), size `s`, rotation `r`.
+  sound word inside the panel.
+- `props` (js/props.js): **drawn**, not emoji. `{ p: "balloon", c: "#4d96ff", x, y, s, r, flip }` — `p` is a name from
+  `Props.P` (balloon bubble cup pancakes box pretzel bike clip lemon star flashlight spoon wheel cart frame bighat
+  log coin teddy sock car rocket backpack volcano envelope cloud bucket soap duck robot robodog fire battery drop
+  splash apple rock mud puddle mirror hole bell key phone dish clipboard ladybug house medal headset cookie leaf
+  tent bulb bolt wrench hammer screwdriver toolbox trophy book books musicnote sun rainbow cake icecream question
+  zzz boom lightning card dot number:3 …). An emoji `{ e: "🎈" }` still works — `Props.EMOJI` maps it to the
+  drawing — but write new art with `p`. Anything unmapped falls back to the glyph; add a drawing instead.
+- `hat` on a cast member sits a prop on their head: `{ who: "bolt", hat: "bighat", hatS: 84, hatC: "#e5473d" }`.
 - x/y are percentages of a 400×300 panel; characters stand on `y` (default 92). Zoe/Dull are taller —
   use `scale:.8` on the treehouse.
 

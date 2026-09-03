@@ -129,8 +129,14 @@ h1, h2, h3, .display { font-family: var(--font-ui); font-weight: 400; letter-spa
 .word:active, .word.hl { background: var(--yellow); box-shadow: 0 0 0 2px var(--yellow); }
 .word.vocab { text-decoration: underline dotted var(--blue) 2.5px; text-underline-offset: 3px; }
 .word.hl { animation: none; }
-.reader-controls { display: grid; grid-template-columns: auto 1fr; gap: 10px; position: sticky; bottom: 0; margin: 0 -14px -24px; padding: 10px 14px calc(14px + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, rgba(255,248,231,0), var(--paper) 35%); }
+.reader-controls { display: flex; gap: 10px; position: sticky; bottom: 0; margin: 0 -14px -24px; padding: 10px 14px calc(14px + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, rgba(255,248,231,0), var(--paper) 35%); }
 .reader-controls .btn.big { min-height: 60px; }
+.reader-controls .btn.primary { flex: 1; }
+.reader-controls .btn.big { white-space: nowrap; padding-left: 16px; padding-right: 16px; }
+.reader-controls .btn.help { flex: 1; font-size: 1.2rem; background: var(--yellow); }
+.reader-controls [hidden] { display: none; }
+.reader-controls .pop { animation: pop .45s cubic-bezier(.3,1.6,.5,1); }
+@keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
 .timer { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--muted); font-size: .95rem; }
 .timer.hidden { visibility: hidden; }
 .progress { height: 10px; border: 3px solid var(--ink); border-radius: 8px; background: #fff; overflow: hidden; }

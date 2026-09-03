@@ -130,7 +130,7 @@
   S.push({
     id: "s1e5", season: 1, num: 5, title: "Bolt Gets Wet",
     blurb: "Drip, drop. Bolt does not like wet. Max has a very big hat.",
-    cover: { bg: "yard", cast: [{ who: "bolt", mood: "worried", pose: "up", x: 40 }, { who: "max", mood: "happy", pose: "point", x: 75, flip: true }], props: [{ e: "☂️", x: 40, y: 40, s: 60 }], fx: "rain" },
+    cover: { bg: "yard", cast: [{ who: "bolt", mood: "worried", pose: "up", x: 40, hat: "bighat" }, { who: "max", mood: "happy", pose: "point", x: 75, flip: true }], fx: "rain" },
     vocab: { wet: "Covered in water.", dry: "Not wet at all.", idea: "A thought about what to do.", hide: "To go where no one can see you." },
     pages: [
       { art: { bg: "yard", cast: [{ who: "bolt", mood: "worried", pose: "up", x: 50 }], fx: "rain" }, lines: [{ n: "Drip, drop. It is wet out." }, { w: "bolt", t: "I do not like wet." }] },
@@ -138,10 +138,10 @@
       { art: { bg: "garage", cast: [{ who: "max", mood: "excited", pose: "up", x: 40 }], props: [{ e: "💡", x: 40, y: 20, s: 50 }] }, lines: [{ n: "Max has an idea." }, { w: "max", t: "A hat! A big hat!" }] },
       { art: { bg: "garage", cast: [{ who: "max", mood: "think", pose: "hold", x: 35 }], props: [{ e: "🥤", x: 62, y: 76, s: 34 }, { e: "🥤", x: 72, y: 76, s: 34 }, { e: "🥤", x: 82, y: 76, s: 34 }, { e: "🥤", x: 67, y: 60, s: 34 }, { e: "🥤", x: 77, y: 60, s: 34 }] },
         math: { intro: "The hat needs cups.", q: "Max needs 8 cups. {He} has 5. How many more does {he} need?", answer: "3", choices: ["2", "3", "4", "13"], hint: "Count up from 5 to 8. Six, seven, eight. That is 3.", success: "Three more cups! Bolt had them in the box." } },
-      { art: { bg: "garage", cast: [{ who: "max", mood: "happy", pose: "hold", x: 40 }], props: [{ e: "☂️", x: 40, y: 50, s: 70 }] }, lines: [{ n: "Max makes a hat." }, { n: "It is big. It is red." }] },
-      { art: { bg: "yard", cast: [{ who: "bolt", mood: "think", x: 50 }], props: [{ e: "☂️", x: 50, y: 42, s: 80 }], fx: "rain" }, lines: [{ n: "Bolt puts on the hat." }, { n: "Bolt goes out." }] },
-      { art: { bg: "yard", cast: [{ who: "bolt", mood: "excited", pose: "cheer", x: 50 }], props: [{ e: "☂️", x: 50, y: 40, s: 80 }], fx: "rain" }, lines: [{ n: "Drip, drop. Bolt is dry!" }, { w: "bolt", t: "I love wet!" }] },
-      { art: { bg: "yard", cast: [{ who: "zoe", mood: "mad", pose: "hips", x: 35 }, { who: "bolt", mood: "sly", x: 72, flip: true }], props: [{ e: "☂️", x: 72, y: 40, s: 60 }], fx: "rain" }, lines: [{ n: "Zoe gets wet." }, { w: "zoe", t: "Where is MY hat?" }] },
+      { art: { bg: "garage", cast: [{ who: "max", mood: "happy", pose: "hold", x: 40 }, { who: "bolt", mood: "surprised", x: 72, flip: true }], props: [{ p: "bighat", x: 40, y: 58, s: 64 }, { p: "cup", x: 78, y: 46, s: 22, r: -20 }, { p: "cup", x: 86, y: 40, s: 22, r: 15 }] }, lines: [{ n: "Max makes a hat." }, { n: "It is big. It is red." }] },
+      { art: { bg: "yard", cast: [{ who: "bolt", mood: "think", x: 50, hat: "bighat", hatS: 84 }], fx: "rain" }, lines: [{ n: "Bolt puts on the hat." }, { n: "Bolt goes out." }] },
+      { art: { bg: "yard", cast: [{ who: "bolt", mood: "excited", pose: "cheer", x: 50, hat: "bighat", hatS: 84 }], props: [{ p: "puddle", x: 50, y: 95, s: 90 }], fx: "rain" }, lines: [{ n: "Drip, drop. Bolt is dry!" }, { w: "bolt", t: "I love wet!" }] },
+      { art: { bg: "yard", cast: [{ who: "zoe", mood: "mad", pose: "hips", x: 35 }, { who: "bolt", mood: "sly", x: 72, flip: true, hat: "bighat", hatS: 80 }], props: [{ p: "drop", x: 24, y: 40, s: 16 }, { p: "drop", x: 44, y: 34, s: 14 }, { p: "puddle", x: 35, y: 95, s: 80 }], fx: "rain" }, lines: [{ n: "Zoe gets wet." }, { w: "zoe", t: "Where is MY hat?" }] },
     ],
     quiz: [
       { q: "Where did Bolt hide?", c: ["In a box", "In a tree", "In the car", "In bed"], a: 0 },
