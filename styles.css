@@ -335,7 +335,8 @@ textarea { min-height: 90px; font-size: .8rem; font-family: ui-monospace, monosp
 .mh-boxlook .mh-label { color: var(--ink); }
 .mh-items { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 5px; min-height: 44px; }
 .mh-arrow { text-align: center; font-family: var(--font-ui); font-size: 1rem; letter-spacing: .06em; color: var(--muted); line-height: 1; }
-.mh-item { width: 44px; height: 44px; border: 3px solid var(--ink); border-radius: 12px; background: #fff; font-size: 1.45rem; line-height: 1; cursor: grab; padding: 0; box-shadow: 3px 3px 0 var(--ink); touch-action: none; user-select: none; -webkit-user-select: none; position: relative; transition: transform .08s; }
+.mh-item { width: 44px; height: 44px; border: 3px solid var(--ink); border-radius: 12px; background: #fff; font-size: 1.45rem; line-height: 1; cursor: grab; padding: 0; box-shadow: 3px 3px 0 var(--ink); touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; position: relative; transition: transform .08s; }
+.mh { touch-action: pan-y; }
 .mh-item.g2 { background: #e8f2ff; }
 .mh-item.fixed { cursor: default; background: #e6ffe9; }
 .mh-item.dragging { z-index: 20; cursor: grabbing; transform: scale(1.1); box-shadow: 6px 6px 0 var(--ink); transition: none; }

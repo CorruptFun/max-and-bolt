@@ -120,6 +120,9 @@
         drag = null;
       };
       el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+      // iOS belt-and-braces: touch-action:none is what stops the page scrolling under a drag; older Safari needs the touchmove blocked too
+      el.addEventListener("touchmove", (e) => { if (drag && drag.el === el) e.preventDefault(); }, { passive: false });
+      el.addEventListener("contextmenu", (e) => e.preventDefault());
     });
     say(words[p.kind], () => {
       if (!o.auto) return;
