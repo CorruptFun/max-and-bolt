@@ -47,8 +47,10 @@ The timer only runs on reading pages — math pages are thinking time.
   plays recordings. `settings.mic` hides the button.
 - **Bolt, help!** (`js/mathhelp.js`): every story math page and bonus part has a help button. It reads the problem
   aloud, then infers a picture from the numbers + answer (count · a+b two groups · "needs 6, has 4" count-up ·
-  "has 10, spills 3" cross-out · a rows of b) and shows counters the kid TAPS while Bolt says each number, ending on
-  the total ("Now tap 2!"). Miss once → help opens by itself; miss twice → Bolt counts it out and the right choice
+  "has 10, spills 3" take-away · a rows of b) and shows DRAG-AND-DROP manipulatives: items start in a pile and the kid
+  drags them into Bolt's box (adding/counting), drags b of them out to Bolt's hands (taking away, then the rest are
+  counted), or fills the empty spots in the box (count up). Bolt says each number as an item lands; tapping an item
+  also moves it (drag fallback); dropping elsewhere snaps back. Ends on the total ("Now tap 2!"). Miss once → help opens by itself; miss twice → Bolt counts it out and the right choice
   pulses. Helped answers keep the star but don't move `mathLevel`. Totals > 30 or money answers → hint read aloud
   instead. Workshop shows a static counter picture under bands 0–2 questions. Echo reading also reads math pages.
 - **Spelling Blast**: the parent types the week's school list (10–12 words; "there - The cat is over there."

@@ -47,59 +47,85 @@
     return rep(p.total);
   }
 
-  /* render(box, p, { auto, onDone(total) }) — builds the tappable counters inside box. auto=true: Bolt does the tapping. */
+  /* render(box, p, { auto, onDone(total) }) — manipulatives the kid DRAGS (or taps):
+       count / add / mul → drag every item from the pile into Bolt's box, Bolt counts each one as it lands
+       more              → the box has empty spots; drag spare items into them, counting UP from what's there
+       take              → the box is full; drag b of them out to Bolt's hands ("take away 1, 2, 3"), then count what's left
+     auto=true: Bolt moves them himself (second miss). */
   function render(box, p, o) {
     o = o || {};
     const T = window.TTS;
     const say = (t, cb) => T.speak(String(t), { rate: .95, onEnd: cb });
-    const words = { count: "Tap each one to count!", add: "Tap them all. Count them up!", more: "Tap the empty ones. Count up!", take: `Tap ${p.b} to take away.`, mul: "Tap them all. Count them up!" };
-    let items = [];   // { el, kind }
-    if (p.kind === "count") items = Array.from({ length: p.total }, () => ({ g: 1 }));
-    else if (p.kind === "add") items = [...Array.from({ length: p.a }, () => ({ g: 1 })), { sep: "+" }, ...Array.from({ length: p.b }, () => ({ g: 2 }))];
-    else if (p.kind === "more") items = [...Array.from({ length: p.have }, () => ({ g: 1, pre: true })), ...Array.from({ length: p.need - p.have }, () => ({ g: 2, empty: true }))];
-    else if (p.kind === "take") items = Array.from({ length: p.a }, () => ({ g: 1, pre: true }));
-    else if (p.kind === "mul") { for (let r = 0; r < p.rows; r++) { if (r) items.push({ br: true }); for (let c = 0; c < p.cols; c++) items.push({ g: r % 2 ? 2 : 1 }); } }
+    const words = {
+      count: "Drag each one into the box. Count!", add: "Put them ALL in the box. Count as you go!", mul: "Put them all in the box. Count!",
+      more: "Fill the empty spots. Count up!", take: `Take ${p.b} away. Drag them to Bolt.`,
+    };
+    const item = (g) => `<button class="mh-item g${g}" type="button">${p.emoji}</button>`;
+    let src = "", dst = "", srcLabel = "", dstLabel = "";
+    if (p.kind === "count") { src = Array.from({ length: p.total }, () => item(1)).join(""); srcLabel = "pile"; dstLabel = "📦 Bolt's box"; }
+    else if (p.kind === "add") { src = Array.from({ length: p.a }, () => item(1)).join("") + `<span class="ctr-sep">+</span>` + Array.from({ length: p.b }, () => item(2)).join(""); srcLabel = `${p.a} and ${p.b}`; dstLabel = "📦 Bolt's box"; }
+    else if (p.kind === "mul") { src = Array.from({ length: p.rows }, (_, r) => Array.from({ length: p.cols }, () => item(r % 2 ? 2 : 1)).join("") + `<i class="ctr-br"></i>`).join(""); srcLabel = `${p.rows} rows of ${p.cols}`; dstLabel = "📦 Bolt's box"; }
+    else if (p.kind === "more") { src = Array.from({ length: p.need - p.have + 2 }, () => item(2)).join(""); srcLabel = "spares"; dstLabel = `📦 needs ${p.need}`;
+      dst = Array.from({ length: p.have }, () => `<span class="mh-slot"><button class="mh-item g1 fixed" type="button">${p.emoji}</button></span>`).join("") + Array.from({ length: p.need - p.have }, () => `<span class="mh-slot empty"></span>`).join(""); }
+    else if (p.kind === "take") { src = Array.from({ length: p.a }, () => item(1)).join(""); srcLabel = `📦 Bolt's box · ${p.a}`; dstLabel = "🤖 Bolt's hands"; }
     box.innerHTML = `<div class="help-say">🤖 ${words[p.kind]}</div>
-      <div class="counters">${items.map((it, i) => it.sep ? `<span class="ctr-sep">${it.sep}</span>` : it.br ? `<i class="ctr-br"></i>` : `<button class="ctr g${it.g} ${it.pre ? "lit" : ""} ${it.empty ? "empty" : ""}" data-i="${i}">${it.empty ? "" : p.emoji}</button>`).join("")}</div>
+      <div class="mh">
+        <div class="mh-zone mh-src ${p.kind === "take" ? "mh-boxlook" : ""}"><span class="mh-label" id="srclabel">${srcLabel}</span><div class="mh-items">${src}</div></div>
+        <div class="mh-arrow">${p.kind === "take" ? "👇 take away" : "👇 put in"}</div>
+        <div class="mh-zone mh-dst ${p.kind === "take" ? "" : "mh-boxlook"}"><span class="mh-label" id="dstlabel">${dstLabel}</span><div class="mh-items" id="dst">${dst}</div></div>
+      </div>
       <div class="help-total" id="helptotal"></div>`;
-    const btns = [...box.querySelectorAll(".ctr")];
-    const totalEl = box.querySelector("#helptotal");
-    let n = p.kind === "more" ? p.have : 0, done = false, taken = 0;
-    const finish = (phrase) => {
-      if (done) return; done = true;
-      totalEl.textContent = "= " + p.total;
-      say(phrase, () => { if (o.onDone) o.onDone(p.total); });
-    };
-    const tapOne = (b) => {
-      if (done) return;
+    const srcZone = box.querySelector(".mh-src"), dstZone = box.querySelector(".mh-dst"), dstItems = box.querySelector("#dst");
+    const dstLabelEl = box.querySelector("#dstlabel"), srcLabelEl = box.querySelector("#srclabel"), sayEl = box.querySelector(".help-say"), totalEl = box.querySelector("#helptotal");
+    const movable = () => [...srcZone.querySelectorAll(".mh-item:not(.fixed):not(.gone)")];
+    let n = p.kind === "more" ? p.have : 0, taken = 0, done = false, locked = false;
+    const finish = (phrase) => { if (done) return; done = true; locked = true; totalEl.textContent = "= " + p.total; say(phrase, () => { if (o.onDone) o.onDone(p.total); }); };
+
+    function land(el) {
+      if (locked || done) return false;
+      el.style.transform = ""; el.classList.remove("dragging"); el.classList.add("landed");
+      setTimeout(() => el.classList.remove("landed"), 350);
       if (p.kind === "take") {
-        if (b.classList.contains("out") || taken >= p.b) return;
-        b.classList.add("out"); taken++;
-        say(taken === 1 ? "Take away 1" : String(taken));
-        if (taken === p.b) {
-          box.querySelector(".help-say").textContent = "🤖 Now count what's left!";
-          const left = btns.filter((x) => !x.classList.contains("out"));
-          let k = 0;
-          const tick = () => { if (k >= left.length) return finish(`${p.total} left!`); left[k].classList.add("on"); say(String(++k), () => setTimeout(tick, 120)); };
-          setTimeout(tick, 500);
-        }
-        return;
+        dstItems.appendChild(el); taken++;
+        dstLabelEl.textContent = `🤖 Bolt's hands · ${taken}`; srcLabelEl.textContent = `📦 Bolt's box · ${p.a - taken}`;
+        if (taken < p.b) { say(taken === 1 ? "Take away 1" : String(taken)); return true; }
+        locked = true;
+        say(`${taken}. Now count what's left.`, () => {
+          sayEl.textContent = "🤖 Count what's left!";
+          const left = movable(); let k = 0;
+          (function tick() { if (k >= left.length) return finish(`${p.total} left!`); left[k].classList.add("on"); say(String(++k), () => setTimeout(tick, 120)); })();
+        });
+        return true;
       }
-      if (b.classList.contains("on") || (p.kind === "more" && !b.classList.contains("empty"))) return;
-      b.classList.add("on"); if (b.classList.contains("empty")) { b.textContent = p.emoji; }
+      if (p.kind === "more") { const slot = dstItems.querySelector(".mh-slot.empty"); if (!slot) return false; slot.classList.remove("empty"); slot.appendChild(el); }
+      else dstItems.appendChild(el);
       n++;
-      const last = n === (p.kind === "more" ? p.need : p.total);
-      if (!last) return say(String(n));
-      const phrase = p.kind === "add" ? `${n}! ${p.a} and ${p.b} make ${n}.` : p.kind === "more" ? `${n}! That is ${p.total} more.` : p.kind === "mul" ? `${n} in all!` : `${n}!`;
-      finish(phrase);
-    };
-    btns.forEach((b) => b.addEventListener("click", () => { T.SFX.tap(); tapOne(b); }));
+      const target = p.kind === "more" ? p.need : p.total;
+      dstLabelEl.textContent = (p.kind === "more" ? `📦 ${n} of ${p.need}` : `📦 Bolt's box · ${n}`);
+      if (n < target) { say(String(n)); return true; }
+      if (p.kind === "more") { srcZone.querySelectorAll(".mh-item").forEach((x) => x.classList.add("gone")); }
+      finish(p.kind === "add" ? `${n}! ${p.a} and ${p.b} make ${n}.` : p.kind === "more" ? `${n}! That is ${p.total} more.` : p.kind === "mul" ? `${n} in all!` : `${n}!`);
+      return true;
+    }
+    const inside = (zone, x, y) => { const r = zone.getBoundingClientRect(); return x >= r.left - 8 && x <= r.right + 8 && y >= r.top - 8 && y <= r.bottom + 8; };
+    let drag = null;
+    box.querySelectorAll(".mh-item:not(.fixed)").forEach((el) => {
+      el.addEventListener("pointerdown", (e) => { if (locked || done || o.auto) return; e.preventDefault(); try { el.setPointerCapture(e.pointerId); } catch (x) { } drag = { el, sx: e.clientX, sy: e.clientY, moved: false }; el.classList.add("dragging"); });
+      el.addEventListener("pointermove", (e) => { if (!drag || drag.el !== el) return; const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy; if (Math.abs(dx) + Math.abs(dy) > 6) drag.moved = true; el.style.transform = `translate(${dx}px,${dy}px)`; });
+      const up = (e) => {
+        if (!drag || drag.el !== el) return;
+        const over = inside(dstZone, e.clientX, e.clientY);
+        const ok = (over || !drag.moved) && el.parentElement && srcZone.contains(el) ? land(el) : false;
+        if (!ok) { el.style.transform = ""; el.classList.remove("dragging"); if (drag.moved && !over) T.SFX.wrong(); } else T.SFX.tap();
+        drag = null;
+      };
+      el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+    });
     say(words[p.kind], () => {
       if (!o.auto) return;
-      // Bolt counts it out himself, one counter at a time
-      const order = p.kind === "take" ? btns.slice(0, p.b) : p.kind === "more" ? btns.filter((b) => b.classList.contains("empty")) : btns;
+      const order = p.kind === "take" ? movable().slice(0, p.b) : movable().slice(0, p.kind === "more" ? p.need - p.have : movable().length);
       let k = 0;
-      (function step() { if (done || k >= order.length) return; tapOne(order[k++]); setTimeout(step, 650); })();
+      (function step() { if (done || locked || k >= order.length) return; const el = order[k++]; el.classList.add("dragging"); setTimeout(() => { land(el); T.SFX.tap(); setTimeout(step, 550); }, 250); })();
     });
   }
 
