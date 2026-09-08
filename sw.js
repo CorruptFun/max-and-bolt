@@ -17,8 +17,8 @@
 */
 
 // 👉 CUSTOMIZE: rename to your app, and bump CACHE_VERSION per deploy (e.g. a build stamp).
-const CACHE_VERSION = "20260908-161419";
-const ASSET_VERSION  = "20260908-161419";
+const CACHE_VERSION = "20260908-162416";
+const ASSET_VERSION  = "20260908-162416";
 const CACHE_NAME    = `maxbolt-${CACHE_VERSION}`;
 
 // 👉 CUSTOMIZE: the offline shell, precached at install. Relative paths (resolved against
@@ -27,7 +27,7 @@ const CACHE_NAME    = `maxbolt-${CACHE_VERSION}`;
 const PRECACHE = [
   "./", "./manifest.json", "./icon-192.png", "./icon-512.png",
   `./styles.css?v=${ASSET_VERSION}`,
-  ...["art", "content", "stories/s0", "stories/s1", "stories/s2", "stories/s3", "stories/s4", "stories/s5", "stories/s6", "stories/s7", "store", "tts", "phonics", "rec", "app"]
+  ...["art", "content", "stories/s0", "stories/s1", "stories/s2", "stories/s3", "stories/s4", "stories/s5", "stories/s6", "stories/s7", "store", "tts", "phonics", "rec", "mathhelp", "app"]
     .map((m) => `./js/${m}.js?v=${ASSET_VERSION}`),
 ];
 

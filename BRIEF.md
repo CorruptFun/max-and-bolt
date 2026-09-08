@@ -45,6 +45,12 @@ The timer only runs on reading pages — math pages are thinking time.
 - **Hear yourself** (`js/rec.js`): 🎙️ records a page (MediaRecorder → IndexedDB, device-only, newest 40 kept);
   stopping — or tapping NEXT — saves it and shows "▶ Hear yourself · 🔊 Hear Bolt". Parent dashboard lists and
   plays recordings. `settings.mic` hides the button.
+- **Bolt, help!** (`js/mathhelp.js`): every story math page and bonus part has a help button. It reads the problem
+  aloud, then infers a picture from the numbers + answer (count · a+b two groups · "needs 6, has 4" count-up ·
+  "has 10, spills 3" cross-out · a rows of b) and shows counters the kid TAPS while Bolt says each number, ending on
+  the total ("Now tap 2!"). Miss once → help opens by itself; miss twice → Bolt counts it out and the right choice
+  pulses. Helped answers keep the star but don't move `mathLevel`. Totals > 30 or money answers → hint read aloud
+  instead. Workshop shows a static counter picture under bands 0–2 questions. Echo reading also reads math pages.
 - **Spelling Blast**: the parent types the week's school list (10–12 words; "there - The cat is over there."
   adds a sentence Bolt says for context). Kid side: Bolt says the word, kid builds it from letter tiles (+2–3
   decoys); hints 🔤 sound it out / 👀 peek (look-cover-write-check). Wrong = word shown + retry; two misses ghost

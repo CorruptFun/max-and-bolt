@@ -392,6 +392,7 @@
         ${isMath ? `${p.math.intro ? `<div class="caption">${wordsHtml(p.math.intro, story)}</div>` : ""}
           <div class="card"><div class="q-label">🔧 BOLT NEEDS MATH</div><div class="question">${wordsHtml(p.math.q, story)}</div></div>
           <div class="choices ${p.math.choices.length === 4 ? "four" : ""}" id="choices">${p.math.choices.map((c) => `<button class="choice" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+          <button class="btn help-btn wide" id="help">🤖 Bolt, help!</button>
           <div id="feedback"></div>`
         : linesHtml(p.lines, story)}
       </div>
@@ -457,13 +458,35 @@
       else yourTurn();
     } else {
       $("#timer").textContent = "⏱ " + fmtTime(R.seconds);
-      let tries = 0; R.mathTotal++;
+      let tries = 0, helped = false; R.mathTotal++;
+      // echo reading on a math page: Bolt reads the problem out loud (nothing is locked — it's thinking time)
+      if (T.available && d.settings.tts && d.settings.echo !== "off") { const tok = R.token; setTimeout(() => { if (R && R.token === tok && R.idx === idx && current === "reader") readAloud(textEl, $("#read")); }, 350); }
+      /* "Bolt, help!" ladder — the kid is often alone with this page:
+         tap help (or miss once) → Bolt reads the problem, then counters appear that he taps to count while Bolt says the numbers
+         (or the hint is read aloud when a problem can't be pictured) · miss twice → Bolt counts it out himself and points at the answer. */
+      const plan = window.MathHelp ? window.MathHelp.plan(H(p.math.q), p.math.answer) : null;
+      function showHelp(auto) {
+        helped = true; R.mathHelp = (R.mathHelp || 0) + 1;
+        $("#help").disabled = true;
+        let box = $("#helpbox");
+        if (!box) { box = document.createElement("div"); box.id = "helpbox"; box.className = "help"; $("#choices").before(box); }
+        const hint = H(p.math.hint || "");
+        const afterRead = () => {
+          if (!R || R.idx !== idx || current !== "reader") return;
+          if (plan) window.MathHelp.render(box, plan, { auto, onDone() { $("#help").disabled = false; if (!auto) { const say = box.querySelector(".help-say"); if (say) say.textContent = "🤖 Now tap " + p.math.answer + "!"; } } });
+          else { box.innerHTML = `<div class="help-say">💡 ${esc(hint || "Think about the story. You can do it!")}</div>`; T.speak(hint || "Think about the story. You can do it!", { onEnd: () => { $("#help").disabled = false; } }); }
+          box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        };
+        if (auto) afterRead(); else { pauseTimer(); T.speak(H((p.math.intro ? p.math.intro + ". " : "") + p.math.q), { rate: .85, onEnd: afterRead }); }
+      }
+      $("#help").addEventListener("click", () => { T.SFX.tap(); showHelp(false); });
       $$(".choice").forEach((b) => b.addEventListener("click", () => {
         const ok = b.dataset.c === String(p.math.answer);
         tries++;
         if (ok) {
           T.SFX.right(); b.classList.add("right");
-          $$(".choice").forEach((x) => x.disabled = true);
+          $$(".choice").forEach((x) => { x.disabled = true; x.classList.remove("pulse"); });
+          $("#help").hidden = true;
           if (tries === 1) R.mathFirst++;
           $("#feedback").innerHTML = `<div class="success">✅ ${wordsHtml(p.math.success || "Nice!", story)}</div>`;
           bindWords($("#feedback"), story);
@@ -471,7 +494,12 @@
           renderBonus();
         } else {
           T.SFX.wrong(); b.classList.add("wrong"); b.disabled = true;
-          $("#feedback").innerHTML = `<div class="hint">💡 ${esc(H(p.math.hint || "Try again!"))}</div>`;
+          if (tries === 1) { $("#feedback").innerHTML = `<div class="hint">💡 ${esc(H(p.math.hint || "Try again!"))}</div>`; showHelp(false); }
+          else {
+            $("#feedback").innerHTML = `<div class="hint">🤖 Let Bolt count it out. Then tap the one that's glowing!</div>`;
+            $$(".choice").forEach((x) => { if (x.dataset.c === String(p.math.answer)) x.classList.add("pulse"); else x.disabled = true; });
+            showHelp(true);
+          }
         }
       }));
     }
@@ -489,16 +517,25 @@
     box.className = "card bonus";
     box.innerHTML = `<div class="row" style="justify-content:space-between"><div class="q-label">🔩 BONUS PART</div><span class="level-pill"><b>LVL ${band.i + 1}</b> ${esc(band.name)}</span></div>
       <div class="question" style="margin-top:6px">${esc(prob.q)}</div>
-      <div class="choices four" style="margin-top:10px">${prob.choices.map((c) => `<button class="choice" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div><div class="bfb" style="margin-top:8px"></div>`;
+      <div class="choices four" style="margin-top:10px">${prob.choices.map((c) => `<button class="choice" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+      ${window.MathHelp && window.MathHelp.plan(prob.q, prob.answer) ? `<button class="btn help-btn wide" style="margin-top:10px" data-help>🤖 Bolt, help!</button>` : ""}<div class="bfb" style="margin-top:8px"></div>`;
     fb.after(box);
-    let tries = 0;
+    let tries = 0, helped = false;
+    const hb = $("[data-help]", box);
+    const showBonusHelp = (auto) => {
+      helped = true; R.mathHelp = (R.mathHelp || 0) + 1; if (hb) hb.disabled = true;
+      let hbox = $(".help", box); if (!hbox) { hbox = document.createElement("div"); hbox.className = "help"; $(".bfb", box).before(hbox); }
+      window.MathHelp.render(hbox, window.MathHelp.plan(prob.q, prob.answer), { auto, onDone() { if (hb) hb.disabled = false; if (!auto) { const s = hbox.querySelector(".help-say"); if (s) s.textContent = "🤖 Now tap " + prob.answer + "!"; } } });
+    };
+    if (hb) hb.addEventListener("click", () => { T.SFX.tap(); showBonusHelp(false); });
     $$(".choice", box).forEach((b) => b.addEventListener("click", () => {
       tries++;
       const ok = b.dataset.c === prob.answer;
       if (ok) { T.SFX.right(); b.classList.add("right"); } else { T.SFX.wrong(); b.classList.add("wrong"); b.disabled = true; }
       if (ok || tries >= 2) {
+        if (hb) hb.hidden = true;
         $$(".choice", box).forEach((x) => { x.disabled = true; if (!ok && x.dataset.c === prob.answer) x.classList.add("right"); });
-        const result = ok ? (tries === 1 ? "right" : "retry") : "wrong";
+        const result = ok ? (tries === 1 && !helped ? "right" : "retry") : "wrong";   // help is free: a helped answer neither climbs nor drops the level
         C.adjustLevel(d, result);
         const nb = C.bandFor(d.mathLevel);
         $(".bfb", box).innerHTML = ok
@@ -508,6 +545,7 @@
         $("#next").disabled = false;
       } else {
         $(".bfb", box).innerHTML = `<div class="hint">Not that one. One more try!</div>`;
+        if (hb && !helped) showBonusHelp(false);
       }
     }));
     box.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -557,7 +595,8 @@
     if (rec.reads > 0) xp = Math.round(xp * .6);   // re-reads still pay, just less
     rec.reads++; rec.done = true; rec.stars = Math.max(rec.stars, stars); rec.lastWpm = wpm; rec.bestWpm = Math.max(rec.bestWpm, wpm);
     rec.quizRight += R.quizFirst; rec.quizTotal += story.quiz.length; rec.mathFirst += R.mathFirst; rec.mathTotal += R.mathTotal; rec.lastAt = Date.now();
-    rec.history = (rec.history || []).concat([{ t: Date.now(), wpm, stars, tapped: R.tapped, rec: Object.keys(R.recs).length }]).slice(-20);
+    rec.helps = (rec.helps || 0) + (R.mathHelp || 0);
+    rec.history = (rec.history || []).concat([{ t: Date.now(), wpm, stars, tapped: R.tapped, rec: Object.keys(R.recs).length, help: R.mathHelp || 0 }]).slice(-20);
     if (window.Rec) Rec.release();
     d.xp += xp;
     const day = St.day(); day.words += R.words; day.seconds += Math.round(R.seconds); day.stories++;
@@ -644,7 +683,7 @@
       <div class="topbar"><button class="btn icon" id="quit">✕</button><div class="title">Workshop</div><div class="ws-timer" id="t">1:00</div></div>
       <div class="row"><div class="card center grow" style="padding:8px"><div class="muted small">SCORE</div><div class="display" style="font-size:2.2rem" id="score">0</div></div>
         <div class="card center grow" style="padding:8px"><div class="muted small">LEVEL</div><div class="display" style="font-size:2.2rem" id="lvl">${adaptive ? C.bandFor(d.mathLevel).i + 1 : +mode + 1}</div></div></div>
-      <div class="card center"><div class="ws-big" id="q"></div><div class="muted small" id="bname"></div></div>
+      <div class="card center"><div class="ws-big" id="q"></div><div class="ws-pic" id="pic"></div><div class="muted small" id="bname"></div></div>
       <div class="choices four" id="choices"></div>
       <div class="center display" id="quip" style="font-size:1.2rem;min-height:1.4rem;color:var(--muted)"></div>
     </div>`);
@@ -658,6 +697,8 @@
       prob = adaptive ? C.adaptiveProblem(d.mathLevel) : C.problemFromBand(+mode);
       tries = 0;
       $("#q").textContent = prob.q; $("#bname").textContent = prob.bandName;
+      const pic = prob.band <= 2 && window.MathHelp ? window.MathHelp.plan(prob.q, prob.answer) : null;   // counters under the question while the numbers are small
+      $("#pic").textContent = pic && pic.total <= 20 && pic.kind !== "count" ? window.MathHelp.picture(pic) : "";
       $("#lvl").textContent = prob.band + 1;
       $("#choices").innerHTML = prob.choices.map((c) => `<button class="choice" data-c="${esc(c)}">${esc(c)}</button>`).join("");
       $$(".choice").forEach((b) => b.addEventListener("click", () => {
@@ -911,6 +952,7 @@
         ${(() => { const b = C.bandFor(d.mathLevel); const log = (d.mathLog || []).slice(-20); const acc = log.length ? Math.round((log.filter((x) => x.r === "right").length / log.length) * 100) : null; return `
         <div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="level-pill"><b>LVL ${b.i + 1}</b> ${esc(b.name)}</span><span class="muted small">${acc == null ? "no bonus problems yet" : acc + "% first-try, last " + log.length}</span></div>
         ${ladderHtml(d.mathLevel)}
+        <div class="muted small" style="margin:8px 0">🤖 <b>Bolt, help!</b> used ${all.reduce((n, s) => n + (St.storyRec(s.id).helps || 0), 0)} times in stories (reads the problem, then tappable counters; a second miss has Bolt count it out). Helped answers don't move the level.</div>
         <div class="muted small" style="margin:8px 0">Bonus parts and the Workshop pull from this level. Three first-try rights climb a level; a miss eases it half a level. Levels: ${C.BANDS.map((x, i) => (i + 1) + " " + x.name).join(" · ")}.</div>
         <div class="row"><button class="btn grow" id="easier">◀ Easier</button><button class="btn grow" id="harder">Harder ▶</button></div>
         <div class="toggle" style="margin-top:8px">Bonus math part after each story's math <div class="switch ${d.settings.bonus !== false ? "on" : ""}" data-s="bonus"></div></div>`; })()}
