@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "max-and-bolt", "runtimeExecutable": "python3", "runtimeArgs": ["dev-server.py", "5188"], "port": 5188 }
+  ]
+}

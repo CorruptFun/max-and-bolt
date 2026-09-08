@@ -10,3 +10,12 @@
 - Deploy: `scripts/deploy.sh "msg"` (bumps SW version + stamps asset URLs; push to main is the deploy).
 - Icons: edit `scripts/icon.svg`, run `scripts/make-icons.sh`.
 - Family app: **no farm theming** (Austin's standing rule).
+- After editing JS: reload twice, then verify in the browser pane with `javascript_tool` + `MB.go(screen, args)`.
+  The service worker precache list in `sw.js` and the `?v=` tags in `index.html` must include every `js/*.js` file
+  (deploy.sh checks the count).
+- **Weekly spelling episode (on request):** Austin pastes his son's spelling list (10–12 words). Write ONE new
+  Season 1 or 2 episode (whichever he's reading — check the vault note) that uses every word at least once in the
+  story text, following the season's sentence shape and word budget, with ≥1 in-plot math page, 3 quiz questions,
+  4–6 vocab (spelling words make good vocab entries), a sticker emoji in `content.js`, and running gags from
+  BRIEF.md. Append to `js/stories/s<N>.js` with the next `num`. The parent dashboard then shows it under
+  "Stories using these words" automatically.

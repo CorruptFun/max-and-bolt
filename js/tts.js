@@ -1,7 +1,7 @@
 /* Max & Bolt — speech (Web Speech API) + tiny synthesized sound effects. No audio files ship. */
 (function () {
   const synth = window.speechSynthesis;
-  let voice = null, voicesReady = false;
+  let voice = null, voicesReady = false, gen = 0;   // gen: every speak()/stop() bumps it, so chained speech knows it was cut off
 
   function pickVoice() {
     if (!synth) return;
@@ -14,28 +14,40 @@
   }
   if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
 
-  function stop() { if (synth) synth.cancel(); }
+  function stop() { gen++; if (synth) synth.cancel(); }
 
-  /* speak(text, {rate, onWord(charIndex), onEnd}) */
+  /* speak(text, {rate, onWord(charIndex), onEnd(finished)}) — onEnd's flag is false when another speak()/stop() cut this one off */
   function speak(text, opts) {
     opts = opts || {};
-    if (!synth || !window.Store.load().settings.tts) { if (opts.onEnd) opts.onEnd(); return null; }
+    if (!synth || !window.Store.load().settings.tts) { if (opts.onEnd) opts.onEnd(true); return null; }
     stop();
+    const my = gen;
     if (!voicesReady) pickVoice();
     const u = new SpeechSynthesisUtterance(text);
     if (voice) u.voice = voice;
     u.lang = (voice && voice.lang) || "en-US";
     u.rate = opts.rate || 0.9;
     u.pitch = opts.pitch || 1.05;
-    if (opts.onWord) u.onboundary = (e) => { if (e.name === "word" || e.charLength || e.charIndex != null) opts.onWord(e.charIndex); };
-    u.onend = () => { if (opts.onEnd) opts.onEnd(); };
-    u.onerror = () => { if (opts.onEnd) opts.onEnd(); };
+    if (opts.onWord) u.onboundary = (e) => { if (e.name && e.name !== "word") return; if (e.charIndex != null) opts.onWord(e.charIndex); };   // sentence boundaries would re-highlight word 0
+    u.onend = () => { if (opts.onEnd) opts.onEnd(my === gen); };
+    u.onerror = () => { if (opts.onEnd) opts.onEnd(my === gen); };
     // Chrome bug: long utterances can stall; a resume() nudge keeps it going.
     const tick = setInterval(() => { if (!synth.speaking) clearInterval(tick); else synth.resume(); }, 5000);
     synth.speak(u);
     return u;
   }
-  function sayWord(w) { speak(w, { rate: 0.75 }); }
+  function sayWord(w, onEnd) { speak(w, { rate: 0.75, onEnd }); }
+  /* sound it out: say each chunk slowly in turn (onChunk(i) before each), then onEnd() — unless something interrupts */
+  function sayChunks(chunks, o) {
+    o = o || {};
+    let i = 0;
+    (function step() {
+      if (i >= chunks.length) { if (o.onEnd) o.onEnd(); return; }
+      if (o.onChunk) o.onChunk(i);
+      const c = chunks[i++];
+      speak(c.say || c.t, { rate: 0.7, onEnd(done) { if (done) setTimeout(step, 160); } });
+    })();
+  }
 
   /* ---- sfx ---- */
   let ctx = null;
@@ -61,5 +73,5 @@
   };
   function unlock() { const c = ac(); if (c && c.state === "suspended") c.resume(); }
 
-  window.TTS = { speak, sayWord, stop, SFX, unlock, available: !!synth };
+  window.TTS = { speak, sayWord, sayChunks, stop, SFX, unlock, available: !!synth };
 })();

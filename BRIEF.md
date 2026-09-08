@@ -31,6 +31,27 @@ fun. Funny, adventurous, short. The app tracks fluency and comprehension without
 Word counts include the math pages' text (it is read too). WPM goals are spring-of-grade oral reading fluency norms (Hasbrouck & Tindal), ~50th percentile.
 The timer only runs on reading pages — math pages are thinking time.
 
+## Reading support (v1.2, 2026-09-08) — built for a reader who is behind
+- **Sound it out** (`js/phonics.js`): tapping any word opens a card with the word in chunks — onset + rime for
+  one-syllable words (b·ox, st·op, sh·ip), syllables for longer ones (rob·ot, bas·ket), endings peeled off
+  (jump·ed, look·s, run·ning). Chunks light up as the voice says each, then slide together and the whole word is
+  said. Sight words (the, said, was…) don't chunk — the card says "just know it". Plain words auto-close after the
+  blend; vocab cards stay. Parent switch `settings.soundOut`. Hand-tuned splits live in `OVERRIDES`.
+- **Echo reading**: on every reading page Bolt reads first (words highlight), NEXT is locked, then the strip flips
+  to "🎤 Your turn!" and only then does the clock run. `settings.echo` = always | first (first read only) | off.
+  Read-aloud always pauses the clock, so WPM is only ever the kid's own reading.
+- **Race your ghost**: a story you've read before shows a 👻 gliding along the progress bar at your best pace.
+  Beat it to the end → "🏁 You beat your ghost!" + 15 XP; the results gauge marks the old best.
+- **Hear yourself** (`js/rec.js`): 🎙️ records a page (MediaRecorder → IndexedDB, device-only, newest 40 kept);
+  stopping — or tapping NEXT — saves it and shows "▶ Hear yourself · 🔊 Hear Bolt". Parent dashboard lists and
+  plays recordings. `settings.mic` hides the button.
+- **Spelling Blast**: the parent types the week's school list (10–12 words; "there - The cat is over there."
+  adds a sentence Bolt says for context). Kid side: Bolt says the word, kid builds it from letter tiles (+2–3
+  decoys); hints 🔤 sound it out / 👀 peek (look-cover-write-check). Wrong = word shown + retry; two misses ghost
+  the letters into the slots. Mastered = 3 first-tries in a row (✅). Words get a ⭐ wavy underline in every
+  story, story cards show "⭐ N spelling", and the Spelling Blast screen lists stories that use them.
+  Data: `profile.spelling = { week, words:[{w,s?}], log:{word:{right,wrong,streak}}, history[] }`.
+
 ## Rules that keep it fun
 - Nothing is a fail state. Wrong answers get a hint and another try; stars are for first-try answers.
 - Re-reading is rewarded (60% XP) — fluency comes from re-reads, and the parent view says so.

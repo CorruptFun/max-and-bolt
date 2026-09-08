@@ -8,7 +8,8 @@
     name: "", hero: "boy", heroName: "Max", theme: "classic", startSeason: 1,
     xp: 0, unlocked: 1, mathLevel: 1, mathLog: [],
     stories: {}, tapped: {}, vocab: {}, days: {}, stickers: [], workshop: {},
-    settings: { timer: true, tts: true, sfx: true, bonus: true },
+    spelling: { week: "", words: [], setAt: 0, log: {}, history: [] },   // this week's school spelling list (parent enters it)
+    settings: { timer: true, tts: true, sfx: true, bonus: true, soundOut: true, echo: "always", mic: true },
     createdAt: Date.now(),
   }, o || {});
   let root = null, temp = null;
@@ -33,7 +34,7 @@
         saveRoot();
       }
     } catch (e) { }
-    Object.values(root.profiles).forEach((p) => { p.settings = Object.assign(freshProfile().settings, p.settings || {}); if (p.mathLevel == null) p.mathLevel = 1; if (!p.mathLog) p.mathLog = []; });
+    Object.values(root.profiles).forEach((p) => { p.settings = Object.assign(freshProfile().settings, p.settings || {}); if (p.mathLevel == null) p.mathLevel = 1; if (!p.mathLog) p.mathLog = []; if (!p.spelling) p.spelling = { week: "", words: [], setAt: 0, log: {}, history: [] }; });
     return root;
   }
   function saveRoot() { try { localStorage.setItem(KEY, JSON.stringify(loadRoot())); } catch (e) { } }
@@ -67,7 +68,7 @@
   };
   function day(key) {
     const d = load();
-    d.days[key || today()] = d.days[key || today()] || { words: 0, seconds: 0, stories: 0, math: 0 };
+    d.days[key || today()] = d.days[key || today()] || { words: 0, seconds: 0, stories: 0, math: 0, spell: 0 };
     return d.days[key || today()];
   }
   function storyRec(id) {
@@ -82,7 +83,7 @@
     for (let i = 0; i < 365; i++) {
       const k = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
       const rec = d.days[k];
-      if (rec && (rec.words > 0 || rec.math > 0)) n++;
+      if (rec && (rec.words > 0 || rec.math > 0 || rec.spell > 0)) n++;
       else if (i > 0) break;
       t.setDate(t.getDate() - 1);
     }

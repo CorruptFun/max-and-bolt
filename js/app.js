@@ -24,11 +24,37 @@
     A.setHero({ gender: p.hero === "girl" ? "girl" : "boy", name: p.heroName || (p.hero === "girl" ? "Maxie" : "Max") });
   }
 
+  /* ---------- weekly spelling words: the parent types the school list; the kid gets Spelling Blast and ⭐ marks in stories ---------- */
+  const spellList = () => (St.load().spelling && St.load().spelling.words) || [];
+  const spellSet = () => new Set(spellList().map((x) => x.w));
+  const mastered = (log, w) => (((log || {})[w] || {}).streak || 0) >= 3;
+  /* "box", "there - The cat is over there." (a sentence after a dash/colon lets Bolt say the word in context) */
+  function parseSpelling(text) {
+    const out = [], seen = new Set();
+    String(text || "").split(/\n|,/).forEach((line) => {
+      const m = line.trim().match(/^([A-Za-z'’-]+)\s*(?:[-–—:]\s*(.+))?$/); if (!m) return;
+      const w = m[1].toLowerCase().replace(/’/g, "'"); if (!w || seen.has(w)) return; seen.add(w);
+      out.push(m[2] ? { w, s: m[2].trim() } : { w });
+    });
+    return out.slice(0, 20);
+  }
+  function storiesWithWords(list) {
+    const words = new Set((list || []).map((x) => x.w));
+    if (!words.size) return [];
+    return window.STORIES.map((s) => {
+      const found = new Set();
+      const scan = (t) => (H(t).match(/[A-Za-z'’]+/g) || []).forEach((tok) => { const c = cleanWord(tok); if (words.has(c)) found.add(c); });
+      s.pages.forEach((p) => { (p.lines || []).forEach((l) => scan(l.n || l.t || "")); if (p.math) { scan(p.math.intro || ""); scan(p.math.q); scan(p.math.success || ""); } });
+      return { story: s, found: [...found] };
+    }).filter((x) => x.found.length).sort((a, b) => b.found.length - a.found.length || a.story.season - b.story.season || a.story.num - b.story.num);
+  }
+  function defaultWeek() { const t = new Date(); t.setDate(t.getDate() - ((t.getDay() + 6) % 7)); return "Week of " + t.toLocaleDateString(undefined, { month: "short", day: "numeric" }); }
+
   /* ---------- navigation ---------- */
   const screens = {};
   let current = null, currentArgs = null;
   function go(name, args, replace) {
-    if (current === "reader") readerLeave();
+    if (current === "reader") { readerLeave(); if (window.Rec) { Rec.release(); Rec.stopPlay(); } }
     T.stop();
     current = name; currentArgs = args || {};
     window.scrollTo(0, 0);
@@ -63,11 +89,38 @@
     document.body.appendChild(bg);
     return { el: bg, close };
   }
+  /* Word card. With sound-it-out on, the word arrives in chunks (b · ox) that light up as the voice says each one,
+     then the tiles slide together and the whole word is said. Plain words auto-close after the blend; vocab cards
+     (with a definition) stay open. Sight words don't chunk — the card says so. */
   function wordCard(word, def) {
-    T.sayWord(word);
-    modal(`<div class="word-big">${esc(word)}</div>${def ? `<div class="def">${esc(def)}</div>` : ""}
-      <div class="row"><button class="btn grow" data-say>🔊 Say it</button><button class="btn primary grow" data-close>Got it</button></div>`)
-      .el.querySelector("[data-say]").addEventListener("click", () => T.sayWord(word));
+    const d = St.load();
+    const chunks = d.settings.soundOut !== false && window.Phonics ? window.Phonics.chunks(word) : null;
+    const multi = !!(chunks && chunks.length > 1);
+    const sight = !!(chunks && chunks.length === 1 && chunks[0].kind === "sight");
+    const isSpell = spellSet().has(word);
+    const m = modal(`${multi ? `<div class="chunks" id="chunks">${chunks.map((c) => `<span class="chunk ${c.kind}">${esc(c.t)}</span>`).join("")}</div>` : ""}
+      <div class="word-big" id="wbig">${esc(word)}</div>
+      ${isSpell ? `<div class="sight-tag" style="color:#e07b00">⭐ One of your spelling words!</div>` : ""}${sight ? `<div class="sight-tag">👀 Sight word — just know it!</div>` : ""}${def ? `<div class="def">${esc(def)}</div>` : ""}
+      <div class="row">${multi ? `<button class="btn blue grow" data-sound>🔤 Sound it out</button>` : ""}<button class="btn grow" data-say>🔊 Say it</button><button class="btn primary grow" data-close>Got it</button></div>`, { onClose: () => T.stop() });
+    const el = m.el;
+    let busy = false, stay = !!def, autoClose = null;
+    const maybeClose = (done) => { if (done && !stay && el.isConnected) autoClose = setTimeout(m.close, 1400); };
+    function soundOut() {
+      if (busy) return; busy = true;
+      const tiles = $$(".chunk", el), box = $("#chunks", el), big = $("#wbig", el);
+      box.classList.remove("blend"); big.classList.remove("pop");
+      T.sayChunks(chunks, {
+        onChunk(i) { tiles.forEach((t, k) => t.classList.toggle("on", k === i)); },
+        onEnd() {
+          tiles.forEach((t) => t.classList.remove("on")); box.classList.add("blend"); big.classList.add("pop");
+          setTimeout(() => T.sayWord(word, (done) => { busy = false; maybeClose(done); }), 120);
+        },
+      });
+    }
+    el.addEventListener("click", (e) => { if (e.target.closest("[data-sound],[data-say]")) { stay = true; clearTimeout(autoClose); } });
+    const sb = $("[data-sound]", el); if (sb) sb.addEventListener("click", () => { busy = false; soundOut(); });
+    $("[data-say]", el).addEventListener("click", () => { busy = false; T.sayWord(word); });
+    if (multi) soundOut(); else T.sayWord(word, maybeClose);
   }
 
   /* ---------- confetti ---------- */
@@ -174,6 +227,8 @@
     const nxt = nextStory();
     const streak = St.streak();
     const band = C.bandFor(d.mathLevel);
+    const sp = d.spelling || { words: [], log: {} };
+    const nMast = sp.words.filter((x) => mastered(sp.log, x.w)).length;
     render(`<div class="screen">
       <div class="hero">
         <button class="avatar" id="switch" title="Switch reader">${A.portrait("max", "happy")}</button>
@@ -192,6 +247,7 @@
         <button class="tile" data-go="workshop"><div class="emoji">🔧</div><div class="name">Bolt's Workshop</div><div class="sub">Math level ${band.i + 1}: ${esc(band.name)}</div></button>
         <button class="tile" data-go="vault"><div class="emoji">📚</div><div class="name">Word Vault</div><div class="sub">${Object.keys(d.vocab).length + Object.keys(d.tapped).length} words</div></button>
         <button class="tile" data-go="stickers"><div class="emoji">⭐</div><div class="name">Stickers</div><div class="sub">${d.stickers.length} / ${window.STORIES.length}</div></button>
+        ${sp.words.length ? `<button class="tile" data-go="spelling"><div class="emoji">🐝</div><div class="name">Spelling Blast</div><div class="sub">${sp.words.length} words · ${nMast} mastered</div></button>` : ""}
       </div>
       <h2 style="font-size:1.6rem;margin-top:4px">Seasons</h2>
       <div class="season-list">
@@ -226,13 +282,14 @@
   screens.season = function ({ n }) {
     const s = C.season(n);
     const list = C.storiesFor(n);
+    const hits = {}; storiesWithWords(spellList()).forEach((h) => { hits[h.story.id] = h.found.length; });
     render(`<div class="screen">
       ${topbar("Season " + n + ": " + s.title, s.grade)}
       <div class="card yellow"><div><b>Reading:</b> ${esc(s.skills)}</div><div style="margin-top:4px"><b>Math:</b> ${esc(s.math)}</div></div>
       ${list.map((st) => { const r = St.storyRec(st.id); return `<button class="story-card" data-story="${st.id}">
         <div class="cover">${A.panel(st.cover)}</div>
         <div class="body"><div class="ep">EPISODE ${st.num} · ${C.storyWords(st)} WORDS</div><div class="name">${esc(st.title)}</div><div class="blurb">${esc(H(st.blurb))}</div>
-        <div class="stats">${starsHtml(r.stars)}${r.bestWpm ? `<span class="muted">🚀 ${r.bestWpm} wpm</span>` : ""}${r.reads ? `<span class="muted">read ${r.reads}×</span>` : ""}</div></div>
+        <div class="stats">${starsHtml(r.stars)}${r.bestWpm ? `<span class="muted">🚀 ${r.bestWpm} wpm</span>` : ""}${r.reads ? `<span class="muted">read ${r.reads}×</span>` : ""}${hits[st.id] ? `<span style="color:#e07b00">⭐ ${hits[st.id]} spelling</span>` : ""}</div></div>
       </button>`; }).join("")}
     </div>`);
     $$("[data-story]").forEach((b) => b.addEventListener("click", () => { T.SFX.tap(); go("reader", { id: b.dataset.story }); }));
@@ -249,19 +306,24 @@
     const story = C.story(id);
     if (!story) return go("home", {}, true);
     const season = C.season(story.season);
-    R = { story, season, idx: page || 0, seconds: 0, pageStart: 0, words: 0, tapped: 0, mathFirst: 0, mathTotal: 0, quizFirst: 0, quizAnswers: [] };
+    const rec0 = St.storyRec(id);
+    R = { story, season, idx: page || 0, seconds: 0, pageStart: 0, words: 0, tapped: 0, mathFirst: 0, mathTotal: 0, quizFirst: 0, quizAnswers: [],
+      token: Math.random(), reading: false, recs: {}, prevBest: rec0.bestWpm || 0,
+      readWords: story.pages.reduce((n, p) => n + (p.lines ? p.lines.reduce((m, l) => m + C.wordCount(l.n || l.t || ""), 0) : 0), 0) };
+    // the ghost: your best read of this story, replayed at its pace along the progress bar. Beat it to the end.
+    R.ghostSec = R.prevBest ? (R.readWords / R.prevBest) * 60 : 0;
     document.documentElement.style.setProperty("--read-size", story.season === 0 ? "1.8rem" : story.season <= 2 ? "1.45rem" : story.season <= 4 ? "1.25rem" : "1.12rem");
     renderPage();
   };
 
   function wordsHtml(text, story) {
     text = H(text);
-    const vocab = story.vocab || {};
+    const vocab = story.vocab || {}, sp = spellSet();
     return text.split(/(\s+)/).map((tok) => {
       if (!tok.trim()) return tok;
       const cw = cleanWord(tok);
-      const isV = cw && vocab[cw];
-      return `<span class="word ${isV ? "vocab" : ""}" data-w="${esc(cw)}">${esc(tok)}</span>`;
+      const isV = cw && vocab[cw], isS = cw && sp.has(cw);
+      return `<span class="word ${isV ? "vocab" : ""} ${isS ? "spell" : ""}" data-w="${esc(cw)}">${esc(tok)}</span>`;
     }).join("");
   }
   function linesHtml(lines, story) {
@@ -278,24 +340,32 @@
       el.classList.add("hl"); setTimeout(() => el.classList.remove("hl"), 900);
       if (story.vocab && story.vocab[w]) { d.vocab[w] = true; St.save(); wordCard(w, story.vocab[w]); return; }
       d.tapped[w] = (d.tapped[w] || 0) + 1; if (R) R.tapped++; St.save();
-      T.sayWord(w);
+      if (d.settings.soundOut !== false && window.Phonics && window.Phonics.chunks(w)) wordCard(w); else T.sayWord(w);
     }));
   }
-  function readAloud(root, btn) {
+  function pauseTimer() { if (R && R.pageStart) { R.seconds += (Date.now() - R.pageStart) / 1000; R.pageStart = 0; } }
+  function resumeTimer(tok, idx) { if (R && R.token === tok && R.idx === idx && R.reading && !R.pageStart && current === "reader") R.pageStart = Date.now(); }
+  function readAloud(root, btn, onDone) {
     const words = $$(".word", root);
     const parts = []; let text = ""; const offsets = [];
     words.forEach((w) => { offsets.push(text.length); text += w.textContent + " "; });
     let last = -1;
+    const tok = R && R.token, idx = R && R.idx;
+    pauseTimer();
     btn.disabled = true;
+    let ended = false;
+    const finish = () => { if (ended) return; ended = true; clearTimeout(guard); if (last >= 0) words[last].classList.remove("hl"); btn.disabled = false; resumeTimer(tok, idx); if (onDone) onDone(); };
+    // watchdog: a voice that never fires onend (no voices loaded, engine stall) must not trap the reader
+    const guard = setTimeout(() => { if (!ended) { T.stop(); finish(); } }, words.length * 900 + 4000);
     T.speak(text.trim(), {
       rate: R.story.season <= 2 ? .8 : .9,
       onWord(ci) {
         let i = offsets.findIndex((o, k) => o <= ci && (k === offsets.length - 1 || offsets[k + 1] > ci));
         if (i < 0 || i === last) return;
-        if (last >= 0) words[last].classList.remove("hl");
+        words.forEach((w) => w.classList.remove("hl"));
         words[i].classList.add("hl"); last = i;
       },
-      onEnd() { if (last >= 0) words[last].classList.remove("hl"); btn.disabled = false; },
+      onEnd: finish,
     });
   }
 
@@ -306,10 +376,18 @@
     const p = story.pages[idx];
     const d = St.load();
     const isMath = !!p.math;
+    const echo = !isMath && T.available && d.settings.tts && (d.settings.echo === "always" || (d.settings.echo === "first" && !St.storyRec(story.id).reads));
+    const mic = !isMath && d.settings.mic !== false && window.Rec && Rec.ok;
+    const ghost = !isMath && d.settings.timer && R.ghostSec > 0;
+    const elapsed = () => R.seconds + (R.pageStart ? (Date.now() - R.pageStart) / 1000 : 0);
+    const ghostPos = () => Math.min(100, (elapsed() / R.ghostSec) * 100);
+    const mePos = Math.round((idx / (total + 1)) * 100);
+    R.reading = false;
     render(`<div class="screen reader">
       <div class="topbar"><button class="btn icon" id="exit" aria-label="Exit">✕</button><div class="title">${esc(story.title)}</div><div class="timer ${d.settings.timer ? "" : "hidden"}" id="timer">⏱ 0:00</div></div>
-      <div class="progress"><i style="width:${Math.round((idx / (total + 1)) * 100)}%"></i></div>
+      <div class="race ${ghost ? "on" : ""}"><div class="progress"><i style="width:${mePos}%"></i></div>${ghost ? `<b class="ghost" id="ghost" style="left:${ghostPos()}%" title="Your best read">👻</b><b class="me" style="left:${mePos}%">🚀</b>` : ""}</div>
       <div class="panel-frame"><div class="pnum">${idx + 1} / ${total}</div>${A.panel(p.art)}</div>
+      ${echo ? `<div class="echo" id="echo">👂 Bolt reads first. Listen!</div>` : ""}
       <div class="text-area" id="text">
         ${isMath ? `${p.math.intro ? `<div class="caption">${wordsHtml(p.math.intro, story)}</div>` : ""}
           <div class="card"><div class="q-label">🔧 BOLT NEEDS MATH</div><div class="question">${wordsHtml(p.math.q, story)}</div></div>
@@ -317,24 +395,66 @@
           <div id="feedback"></div>`
         : linesHtml(p.lines, story)}
       </div>
-      <div class="reader-controls">
+      ${mic ? `<div class="playback" id="playback" hidden><button class="btn grow" id="playme">▶ Hear yourself</button><button class="btn grow" id="playbolt" ${T.available ? "" : "disabled"}>🔊 Hear Bolt</button></div>` : ""}
+      <div class="reader-controls ${mic ? "three" : ""}">
         <button class="btn big" id="read" title="Read to me" ${T.available ? "" : "disabled"}>🔊</button>
-        <button class="btn big primary" id="next" ${isMath ? "disabled" : ""}>${idx === total - 1 ? "FINISH ▶" : "NEXT ▶"}</button>
+        ${mic ? `<button class="btn big" id="mic" title="Record yourself reading">🎙️</button>` : ""}
+        <button class="btn big primary" id="next" ${isMath || echo ? "disabled" : ""}>${idx === total - 1 ? "FINISH ▶" : "NEXT ▶"}</button>
       </div>
     </div>`);
     T.SFX.page();
     const textEl = $("#text");
     bindWords(textEl, story);
     $("#exit").addEventListener("click", () => { T.SFX.tap(); go("season", { n: story.season }); });
-    $("#read").addEventListener("click", (e) => readAloud(isMath ? textEl : textEl, e.currentTarget));
-    $("#next").addEventListener("click", () => { T.SFX.tap(); readerLeave(); R.idx++; renderPage(); });
+    $("#read").addEventListener("click", (e) => readAloud(textEl, e.currentTarget));
 
-    // timing: count words + run the clock only on reading pages (math pages are thinking time, not reading speed)
+    // 🎙️ record this page; stopping (or tapping NEXT) saves it and offers "hear yourself / hear Bolt"
+    const micBtn = $("#mic");
+    async function stopRec() {
+      if (!micBtn || !Rec.recording()) return;
+      micBtn.classList.remove("rec", "nudge"); micBtn.textContent = "🎙️";
+      const r = await Rec.stop();
+      if (!r || r.seconds < 1) return;
+      R.recs[idx] = r;
+      const pb = $("#playback"); if (pb && R && R.idx === idx) pb.hidden = false;
+      try { await Rec.save({ profile: d.id, story: story.id, page: idx, blob: r.blob, seconds: Math.round(r.seconds) }); } catch (e) { }
+    }
+    if (micBtn) {
+      micBtn.addEventListener("click", async () => {
+        T.SFX.tap();
+        if (Rec.recording()) return stopRec();
+        try { T.stop(); Rec.stopPlay(); await Rec.start(); micBtn.classList.add("rec"); micBtn.classList.remove("nudge"); micBtn.textContent = "⏹"; }
+        catch (e) { modal(`<h2>🎙️ Bolt can't hear you</h2><div class="def">Ask a grown-up to allow the microphone for Max &amp; Bolt, then try again.</div><button class="btn primary" data-close>OK</button>`); }
+      });
+      $("#playme").addEventListener("click", (e) => {
+        const r = R.recs[idx]; if (!r) return;
+        const b = e.currentTarget, tok = R.token; b.disabled = true; T.stop(); pauseTimer();
+        Rec.play(r.blob, () => { b.disabled = false; resumeTimer(tok, idx); });
+      });
+      $("#playbolt").addEventListener("click", (e) => { Rec.stopPlay(); readAloud(textEl, e.currentTarget); });
+    }
+    $("#next").addEventListener("click", async (e) => { T.SFX.tap(); e.currentTarget.disabled = true; await stopRec(); if (!R || R.idx !== idx) return; readerLeave(); R.idx++; renderPage(); });
+
+    // timing: count words + run the clock only on reading pages (math pages are thinking time, not reading speed).
+    // Echo reading: Bolt reads the page first (clock off), then it's the reader's turn and the clock starts.
     if (!isMath) {
       R.words += p.lines.reduce((n, l) => n + C.wordCount(l.n || l.t || ""), 0);
-      R.pageStart = Date.now();
       const tEl = $("#timer");
-      timerInt = setInterval(() => { if (R && tEl) tEl.textContent = "⏱ " + fmtTime(R.seconds + (R.pageStart ? (Date.now() - R.pageStart) / 1000 : 0)); }, 500);
+      timerInt = setInterval(() => {
+        if (!R || !tEl) return;
+        tEl.textContent = "⏱ " + fmtTime(elapsed());
+        if (ghost) { const g = $("#ghost"); if (g) g.style.left = ghostPos() + "%"; }
+      }, 500);
+      const tok = R.token;
+      function yourTurn() {
+        if (!R || R.token !== tok || R.idx !== idx || current !== "reader") return;
+        R.reading = true; if (!R.pageStart) R.pageStart = Date.now();
+        const e = $("#echo"); if (e) { e.className = "echo turn"; e.textContent = "🎤 Your turn! Read it out loud."; }
+        const n = $("#next"); if (n) n.disabled = false;
+        if (micBtn && !Rec.recording()) micBtn.classList.add("nudge");
+      }
+      if (echo) setTimeout(() => { if (R && R.token === tok && R.idx === idx && current === "reader") readAloud(textEl, $("#read"), yourTurn); }, 350);
+      else yourTurn();
     } else {
       $("#timer").textContent = "⏱ " + fmtTime(R.seconds);
       let tries = 0; R.mathTotal++;
@@ -432,11 +552,13 @@
     const stars = R.quizFirst;
     const first = !rec.done;
     const fast = wpm >= season.wpm;
-    let xp = R.words + stars * 25 + R.mathFirst * 15 + (fast ? 20 : 0) + (first ? 50 : 0);
+    const beat = rec.reads > 0 && wpm > rec.bestWpm;   // beat the ghost (your own best read)
+    let xp = R.words + stars * 25 + R.mathFirst * 15 + (fast ? 20 : 0) + (first ? 50 : 0) + (beat ? 15 : 0);
     if (rec.reads > 0) xp = Math.round(xp * .6);   // re-reads still pay, just less
     rec.reads++; rec.done = true; rec.stars = Math.max(rec.stars, stars); rec.lastWpm = wpm; rec.bestWpm = Math.max(rec.bestWpm, wpm);
     rec.quizRight += R.quizFirst; rec.quizTotal += story.quiz.length; rec.mathFirst += R.mathFirst; rec.mathTotal += R.mathTotal; rec.lastAt = Date.now();
-    rec.history = (rec.history || []).concat([{ t: Date.now(), wpm, stars, tapped: R.tapped }]).slice(-20);
+    rec.history = (rec.history || []).concat([{ t: Date.now(), wpm, stars, tapped: R.tapped, rec: Object.keys(R.recs).length }]).slice(-20);
+    if (window.Rec) Rec.release();
     d.xp += xp;
     const day = St.day(); day.words += R.words; day.seconds += Math.round(R.seconds); day.stories++;
     const newSticker = !d.stickers.includes(story.id); if (newSticker) d.stickers.push(story.id);
@@ -455,9 +577,9 @@
       </div>
       <div class="card">
         <div class="row"><b>Reading speed</b><span class="grow"></span><span class="muted small">goal ${season.wpm} wpm</span></div>
-        <div class="gauge"><div class="fill" id="gfill"></div><div class="target" style="left:${tgt}%"></div><div class="rocket" id="grocket">🚀</div></div>
+        <div class="gauge"><div class="fill" id="gfill"></div><div class="target" style="left:${tgt}%"></div>${R.prevBest ? `<div class="ghost-mark" style="left:${Math.min(98, (R.prevBest / gaugeMax) * 100)}%">👻</div>` : ""}<div class="rocket" id="grocket">🚀</div></div>
         <div class="center display" style="font-size:1.6rem;margin-top:14px">${wpm} words per minute ${fast ? "🔥" : ""}</div>
-        ${rec.bestWpm > wpm ? `<div class="center muted small">Your best is ${rec.bestWpm}</div>` : rec.reads > 1 ? `<div class="center muted small">New personal best!</div>` : ""}
+        ${beat ? `<div class="center display" style="font-size:1.25rem;color:var(--green)">🏁 You beat your ghost! (old best ${R.prevBest})</div>` : rec.bestWpm > wpm ? `<div class="center muted small">👻 The ghost wins this time — your best is ${rec.bestWpm}. Read it again and race!</div>` : rec.reads > 1 ? `<div class="center muted small">New personal best!</div>` : ""}
       </div>
       <div class="statgrid">
         <div class="stat"><b>${R.words}</b><span>words</span></div>
@@ -598,6 +720,111 @@
   };
 
   /* =====================================================================
+     SPELLING BLAST — this week's school spelling words. Bolt says the word, the kid builds it from letter tiles.
+     Hints: 🔤 sound it out (phonics chunks) · 👀 peek (look-cover-write-check). Wrong = the word is shown and
+     tried again; after two misses the letters ghost into the slots to trace. Mastered = 3 first-tries in a row.
+     ===================================================================== */
+  screens.spelling = function () {
+    const d = St.load(), sp = d.spelling;
+    if (!sp || !sp.words.length) return go("home", {}, true);
+    const log = sp.log || {};
+    const hits = storiesWithWords(sp.words).slice(0, 6);
+    render(`<div class="screen">
+      ${topbar("Spelling Blast", esc(sp.week || ""))}
+      <div class="panel-frame">${A.panel({ bg: "school", cast: [{ who: "bolt", mood: "excited", pose: "point", x: 35 }, { who: "max", mood: "think", pose: "think", x: 70, flip: true }], props: [{ e: "🐝", x: 82, y: 22, s: 44 }, { e: "✏️", x: 16, y: 28, s: 40 }] })}</div>
+      <div class="card yellow"><h2>Your words this week</h2><div class="muted small" style="margin-bottom:8px">Bolt says a word. You build it! Tap a word to hear it.</div>
+        <div class="chips">${sp.words.map((x) => `<button class="chip ${mastered(log, x.w) ? "done" : ""}" data-w="${esc(x.w)}">${mastered(log, x.w) ? "✅ " : ""}${esc(x.w)}</button>`).join("")}</div></div>
+      <button class="btn big primary wide" id="start">SPELL THEM! 🐝</button>
+      ${hits.length ? `<h2 style="font-size:1.4rem">Stories with your words</h2>${hits.map((h) => `<button class="story-card" data-story="${h.story.id}">
+        <div class="cover">${A.panel(h.story.cover)}</div>
+        <div class="body"><div class="ep">SEASON ${h.story.season} · EPISODE ${h.story.num}</div><div class="name">${esc(h.story.title)}</div><div class="blurb" style="color:#e07b00;font-weight:700">⭐ ${h.found.map(esc).join(" · ")}</div></div></button>`).join("")}` : ""}
+    </div>`);
+    $$(".chip").forEach((b) => b.addEventListener("click", () => wordCard(b.dataset.w)));
+    $$("[data-story]").forEach((b) => b.addEventListener("click", () => { T.SFX.tap(); go("reader", { id: b.dataset.story }); }));
+    $("#start").addEventListener("click", () => { T.SFX.tap(); runSpelling(); });
+  };
+  function runSpelling() {
+    const d = St.load(), sp = d.spelling; sp.log = sp.log || {}; const log = sp.log;
+    const shuffle = (a) => a.slice().sort(() => Math.random() - .5);
+    const queue = shuffle(sp.words.filter((x) => !mastered(log, x.w))).concat(shuffle(sp.words.filter((x) => mastered(log, x.w))));
+    let i = 0, first = 0, done = 0; const results = [];
+    const say = (x) => T.speak(x.s ? `${x.w}. ${x.s}. ${x.w}.` : `${x.w}. ${x.w}.`, { rate: .8 });
+    function round() {
+      if (i >= queue.length) return end();
+      const x = queue[i], word = x.w, letters = word.split("");
+      const decoys = shuffle("aeioubdpmnstlr".split("").filter((c) => !word.includes(c))).slice(0, word.length >= 6 ? 3 : 2);
+      const tiles = shuffle(letters.concat(decoys));
+      let tries = 0, peeked = false; const slots = new Array(letters.length).fill(null);
+      render(`<div class="screen">
+        <div class="topbar"><button class="btn icon" id="quit" aria-label="Quit">✕</button><div class="title">Spelling Blast</div><div class="meta">${i + 1} / ${queue.length}</div></div>
+        <div class="progress"><i style="width:${Math.round((i / queue.length) * 100)}%"></i></div>
+        <div class="card">
+          <div class="speech"><div class="portrait">${A.portrait("bolt", "excited")}</div><div class="bubble"><span class="name">Bolt</span>Spell this word!</div></div>
+          <div class="row" style="margin-top:12px"><button class="btn blue grow" id="say">🔊 Hear</button><button class="btn grow" id="sound">🔤 Sounds</button><button class="btn grow" id="peek">👀 Peek</button></div>
+        </div>
+        <div class="slots" id="slots">${letters.map(() => `<button class="slot" aria-label="letter slot"></button>`).join("")}</div>
+        <div class="letters" id="letters">${tiles.map((c, k) => `<button class="letter" data-k="${k}" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+        <div id="feedback"></div>
+      </div>`);
+      const slotEls = $$(".slot"), tileEls = $$(".letter"), fb = $("#feedback");
+      let locked = false;
+      const clearSlot = (s) => { const v = slots[s]; if (!v) return; slots[s] = null; tileEls[v.k].disabled = false; slotEls[s].textContent = ""; slotEls[s].classList.remove("filled", "bad"); };
+      const place = (k) => { if (locked) return; const s = slots.findIndex((v) => !v); if (s < 0) return; slots[s] = { ch: tileEls[k].dataset.c, k }; tileEls[k].disabled = true; slotEls[s].textContent = slots[s].ch; slotEls[s].classList.add("filled"); T.SFX.tap(); if (slots.every(Boolean)) check(); };
+      tileEls.forEach((t, k) => t.addEventListener("click", () => place(k)));
+      slotEls.forEach((el, s) => el.addEventListener("click", () => { if (!locked) clearSlot(s); }));
+      function check() {
+        tries++; locked = true;
+        const L = log[word] = log[word] || { right: 0, wrong: 0, streak: 0 };
+        if (slots.map((v) => v.ch).join("") === word) {
+          T.SFX.right(); slotEls.forEach((el) => el.classList.add("good"));
+          const ft = tries === 1 && !peeked;
+          if (ft) { L.streak++; L.right++; first++; } else if (tries === 1) { L.right++; }
+          L.last = Date.now(); done++; results.push({ w: word, ft });
+          const dy = St.day(); dy.spell = (dy.spell || 0) + 1; St.save();
+          const justMastered = ft && L.streak === 3;
+          fb.innerHTML = `<div class="success center">${ft ? "⭐ First try! " : "✅ "}<b>${esc(word)}</b>${justMastered ? " — MASTERED! 🏆" : ""}</div>`;
+          if (justMastered) { T.SFX.star(); confetti(80); }
+          T.sayWord(word);
+          setTimeout(() => { i++; round(); }, justMastered ? 1900 : 1300);
+        } else {
+          T.SFX.wrong();
+          slotEls.forEach((el, s) => { if (slots[s].ch !== letters[s]) el.classList.add("bad"); });
+          if (tries === 1) { L.wrong++; L.streak = 0; St.save(); }
+          const chunks = (window.Phonics && window.Phonics.chunks(word)) || [{ t: word }];
+          fb.innerHTML = `<div class="hint center">Not yet! It's spelled <b class="spell-show">${esc(letters.join(" "))}</b><br><span class="small">Sound it out: ${chunks.map((c) => esc(c.t)).join(" · ")}</span></div>`;
+          T.sayChunks(chunks, { onEnd: () => T.sayWord(word) });
+          setTimeout(() => { slots.forEach((v, s) => clearSlot(s)); if (tries >= 2) slotEls.forEach((el, s) => el.dataset.ghost = letters[s]); locked = false; }, 2200);
+        }
+      }
+      $("#say").addEventListener("click", () => say(x));
+      $("#sound").addEventListener("click", () => { const c = window.Phonics && window.Phonics.chunks(word); if (c && c.length > 1) T.sayChunks(c, { onEnd: () => T.sayWord(word) }); else T.sayWord(word); });
+      $("#peek").addEventListener("click", (e) => { peeked = true; const b = e.currentTarget; b.disabled = true; fb.innerHTML = `<div class="peek">${esc(word)}</div>`; setTimeout(() => { if (fb.querySelector(".peek")) fb.innerHTML = ""; b.disabled = false; }, 2000); });
+      $("#quit").addEventListener("click", () => { T.SFX.tap(); go("spelling"); });
+      setTimeout(() => say(x), 300);
+    }
+    function end() {
+      const xp = first * 10 + (done - first) * 5;
+      d.xp += xp; St.save();
+      const nm = sp.words.filter((w) => mastered(log, w.w)).length;
+      const perfect = first === queue.length;
+      render(`<div class="screen">
+        <div class="topbar"><div class="title">Spelling Blast</div></div>
+        <div class="card yellow center"><div class="results-stars">${perfect ? "<span>🏆</span>" : first >= queue.length / 2 ? "<span>⭐</span><span>⭐</span>" : "<span>⭐</span>"}</div>
+          <div class="display" style="font-size:1.5rem;margin-top:6px">${first} of ${queue.length} on the first try!</div></div>
+        <div class="card"><h2>This week's words</h2><div class="chips">${sp.words.map((w) => { const r = results.find((y) => y.w === w.w); return `<span class="chip ${mastered(log, w.w) ? "done" : ""}">${mastered(log, w.w) ? "✅" : r && r.ft ? "⭐" : "🔶"} ${esc(w.w)}</span>`; }).join("")}</div>
+          <div class="muted small" style="margin-top:8px">✅ mastered (3 first-tries in a row) · ⭐ first try · 🔶 keep practicing</div></div>
+        <div class="card center"><div class="display" style="font-size:1.5rem">+${xp} XP</div><div class="muted small">${nm} / ${sp.words.length} mastered</div></div>
+        <div class="row"><button class="btn grow" id="again">Again 🐝</button><button class="btn primary grow" id="home">Home</button></div>
+      </div>`);
+      if (perfect) { T.SFX.fanfare(); confetti(140); } else T.SFX.star();
+      try { history.replaceState({ name: "spelling", args: {} }, ""); } catch (e) { }
+      $("#again").addEventListener("click", () => { T.SFX.tap(); runSpelling(); });
+      $("#home").addEventListener("click", () => go("home"));
+    }
+    round();
+  }
+
+  /* =====================================================================
      STICKERS
      ===================================================================== */
   screens.stickers = function () {
@@ -688,6 +915,16 @@
         <div class="row"><button class="btn grow" id="easier">◀ Easier</button><button class="btn grow" id="harder">Harder ▶</button></div>
         <div class="toggle" style="margin-top:8px">Bonus math part after each story's math <div class="switch ${d.settings.bonus !== false ? "on" : ""}" data-s="bonus"></div></div>`; })()}
       </div>
+      <div class="card"><h2>Spelling words this week</h2>
+        ${(() => { const sp = d.spelling, hits = storiesWithWords(sp.words); return `
+        <div class="muted small">Type the school list, one word per line (10–12 is typical). Put a sentence after a dash so Bolt says the word in context: <i>there - The cat is over there.</i> The words get a ⭐ underline in every story and a <b>Spelling Blast</b> tile appears on ${esc(d.name || "the reader")}'s home screen.</div>
+        <div class="field" style="margin-top:10px"><label>Week</label><input type="text" id="spweek" value="${esc(sp.week || "")}" placeholder="${esc(defaultWeek())}" maxlength="40"></div>
+        <div class="field" style="margin-top:10px"><label>Words</label><textarea id="spwords" style="font-family:var(--font-read);font-size:1.05rem;min-height:150px" placeholder="box&#10;jump&#10;there - The cat is over there.">${esc(sp.words.map((x) => x.w + (x.s ? " - " + x.s : "")).join("\n"))}</textarea></div>
+        <div class="row" style="margin-top:8px"><button class="btn primary grow" id="spsave">Save words</button>${sp.words.length ? `<button class="btn grow" id="spnew">New week (clear)</button>` : ""}</div>
+        ${sp.words.length ? `<div class="chips" style="margin-top:10px">${sp.words.map((x) => { const L = sp.log[x.w] || {}; return `<span class="chip ${mastered(sp.log, x.w) ? "done" : ""}">${mastered(sp.log, x.w) ? "✅" : (L.right || L.wrong) ? "🔶" : "⚪"} ${esc(x.w)}<small>${L.right || 0}✓ ${L.wrong || 0}✗</small></span>`; }).join("")}</div>
+        <div class="muted small" style="margin-top:8px"><b>Stories using these words:</b> ${hits.length ? hits.map((h) => esc(h.story.title) + " (" + h.found.map(esc).join(", ") + ")").join(" · ") : "none yet."} Want an episode written around the whole list? Paste the words to Claude — see the project notes.</div>` : ""}
+        ${sp.history && sp.history.length ? `<div class="muted small" style="margin-top:8px"><b>Past weeks:</b> ${sp.history.slice(-4).map((h) => esc(h.week) + " (" + h.mastered + "/" + h.words.length + " mastered)").join(" · ")}</div>` : ""}`; })()}
+      </div>
       <div class="card"><h2>Settings</h2>
         <div class="field"><label>Reader's name</label><input type="text" id="pname" value="${esc(d.name)}" maxlength="16"></div>
         <div class="field" style="margin-top:10px"><label>Hero</label><select id="hero"><option value="boy" ${d.hero !== "girl" ? "selected" : ""}>Max (boy)</option><option value="girl" ${d.hero === "girl" ? "selected" : ""}>Maxie (girl)</option></select></div>
@@ -697,8 +934,17 @@
         <div class="field" style="margin-top:10px"><label>Seasons unlocked through</label><select id="unlock">${C.SEASONS.filter((s) => s.n >= 1).map((s) => `<option value="${s.n}" ${s.n === d.unlocked ? "selected" : ""}>Season ${s.n} — ${s.grade}</option>`).join("")}</select></div>
         <div class="toggle" style="margin-top:8px">Show the reading timer <div class="switch ${d.settings.timer ? "on" : ""}" data-s="timer"></div></div>
         <div class="toggle">Read-aloud voice <div class="switch ${d.settings.tts ? "on" : ""}" data-s="tts"></div></div>
+        <div class="toggle">Tap a word → sound it out in chunks (b · ox) <div class="switch ${d.settings.soundOut !== false ? "on" : ""}" data-s="soundOut"></div></div>
+        <div class="field" style="margin-top:10px"><label>Echo reading — Bolt reads each page first, then it's ${esc(d.name || "the reader")}'s turn (the clock only runs on their turn)</label><select id="echo">
+          <option value="always" ${d.settings.echo === "always" || !d.settings.echo ? "selected" : ""}>Every read — best while catching up</option>
+          <option value="first" ${d.settings.echo === "first" ? "selected" : ""}>Only the first read of a story — re-reads are solo</option>
+          <option value="off" ${d.settings.echo === "off" ? "selected" : ""}>Off</option></select></div>
+        <div class="toggle">🎙️ Record button — hear yourself, then hear Bolt <div class="switch ${d.settings.mic !== false ? "on" : ""}" data-s="mic"></div></div>
         <div class="toggle">Sound effects <div class="switch ${d.settings.sfx ? "on" : ""}" data-s="sfx"></div></div>
       </div>
+      <div class="card"><h2>Recordings</h2>
+        <div class="muted small" style="margin-bottom:8px">Tap 🎙️ on a story page to record it. Listen back together — kids hear their own progress. Stays on this device; the newest 40 are kept.</div>
+        <div id="recs" class="recs"><span class="muted">Loading…</span></div></div>
       <div class="card"><h2>Move progress to another device</h2>
         <div class="muted small">Progress lives on this device only. Copy this code and paste it into the app on the other device.</div>
         <textarea id="exp" readonly>${esc(St.exportJSON())}</textarea>
@@ -713,6 +959,29 @@
     $("#heroname").addEventListener("change", (e) => { d.heroName = e.target.value.trim() || (d.hero === "girl" ? "Maxie" : "Max"); St.save(); applyProfile(); });
     $("#theme").addEventListener("change", (e) => { d.theme = e.target.value; St.save(); applyProfile(); });
     $("#startseason").addEventListener("change", (e) => { d.startSeason = +e.target.value; St.save(); });
+    $("#echo").addEventListener("change", (e) => { d.settings.echo = e.target.value; St.save(); });
+    $("#spsave").addEventListener("click", () => {
+      const sp = d.spelling, words = parseSpelling($("#spwords").value);
+      if (!words.length) { modal(`<h2>No words yet</h2><div class="def">Type one word per line, like <b>box</b>.</div><button class="btn primary" data-close>OK</button>`); return; }
+      sp.words = words; sp.week = $("#spweek").value.trim() || defaultWeek(); sp.setAt = Date.now(); sp.log = sp.log || {};
+      Object.keys(sp.log).forEach((w) => { if (!words.find((x) => x.w === w)) delete sp.log[w]; });
+      St.save(); parentDash(); window.scrollTo(0, 0);
+    });
+    const spnew = $("#spnew"); if (spnew) spnew.addEventListener("click", () => {
+      const sp = d.spelling;
+      sp.history = (sp.history || []).concat([{ week: sp.week || defaultWeek(), words: sp.words.map((x) => x.w), mastered: sp.words.filter((x) => mastered(sp.log, x.w)).length, t: Date.now() }]).slice(-12);
+      sp.words = []; sp.log = {}; sp.week = ""; St.save(); parentDash();
+    });
+    if (window.Rec) Rec.list(d.id).then((list) => {
+      const box = $("#recs"); if (!box) return;
+      if (!list.length) { box.innerHTML = `<span class="muted">No recordings yet.</span>`; return; }
+      box.innerHTML = list.map((r) => { const s = C.story(r.story); return `<div class="rec-row" data-id="${r.id}"><div class="grow"><b>${s ? esc(s.title) : esc(r.story)}</b> · page ${r.page + 1}<div class="muted small">${new Date(r.t).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · ${fmtTime(r.seconds || 0)}</div></div><button class="btn" data-play>▶</button><button class="btn ghost" data-del title="Delete">🗑</button></div>`; }).join("");
+      $$(".rec-row", box).forEach((row) => {
+        const r = list.find((x) => String(x.id) === row.dataset.id);
+        $("[data-play]", row).addEventListener("click", (e) => { const b = e.currentTarget; if (b.textContent === "⏸") { Rec.stopPlay(); b.textContent = "▶"; return; } $$("[data-play]", box).forEach((x) => x.textContent = "▶"); b.textContent = "⏸"; Rec.play(r.blob, () => { b.textContent = "▶"; }); });
+        $("[data-del]", row).addEventListener("click", () => Rec.remove(r.id).then(() => row.remove()));
+      });
+    });
     $("#unlock").addEventListener("change", (e) => { d.unlocked = +e.target.value; St.save(); });
     $("#easier").addEventListener("click", () => { d.mathLevel = Math.max(0, Math.floor(d.mathLevel) - 1); St.save(); parentDash(); });
     $("#harder").addEventListener("click", () => { d.mathLevel = Math.min(C.BANDS.length - .01, Math.floor(d.mathLevel) + 1); St.save(); parentDash(); });
