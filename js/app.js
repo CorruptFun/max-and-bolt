@@ -308,7 +308,7 @@
     const season = C.season(story.season);
     const rec0 = St.storyRec(id);
     R = { story, season, idx: page || 0, seconds: 0, pageStart: 0, words: 0, tapped: 0, mathFirst: 0, mathTotal: 0, quizFirst: 0, quizAnswers: [],
-      token: Math.random(), reading: false, recs: {}, prevBest: rec0.bestWpm || 0,
+      token: Math.random(), reading: false, recs: {}, prevBest: rec0.bestWpm || 0, slid: 0,
       readWords: story.pages.reduce((n, p) => n + (p.lines ? p.lines.reduce((m, l) => m + C.wordCount(l.n || l.t || ""), 0) : 0), 0) };
     // the ghost: your best read of this story, replayed at its pace along the progress bar. Beat it to the end.
     R.ghostSec = R.prevBest ? (R.readWords / R.prevBest) * 60 : 0;
@@ -326,10 +326,15 @@
       return `<span class="word ${isV ? "vocab" : ""} ${isS ? "spell" : ""}" data-w="${esc(cw)}">${esc(tok)}</span>`;
     }).join("");
   }
-  function linesHtml(lines, story) {
-    return lines.map((l) => {
-      if (l.n != null) return `<div class="caption">${wordsHtml(l.n, story)}</div>`;
-      return `<div class="speech"><div class="portrait">${A.portrait(l.w, "happy")}</div><div class="bubble"><span class="name">${esc(A.NAMES[l.w] || l.w)}</span>${wordsHtml(l.t, story)}</div></div>`;
+  /* 🚀 slide-to-read: a rocket path under a block of words (fly = { tip } shows the "slide me" nudge until the first drag) */
+  function flyHtml(tip) {
+    return `<div class="fly" role="slider" aria-label="Slide the rocket to hear each word" aria-valuemin="0" aria-valuenow="0"><i class="fly-path"></i><i class="fly-fill"></i><i class="fly-end">⭐</i>${tip ? `<span class="fly-tip">slide me ▸</span>` : ""}<b class="fly-rocket">🚀</b></div>`;
+  }
+  function linesHtml(lines, story, fly) {
+    return lines.map((l, i) => {
+      const f = fly ? flyHtml(fly.tip && i === 0) : "";
+      if (l.n != null) return `<div class="caption">${wordsHtml(l.n, story)}${f}</div>`;
+      return `<div class="speech"><div class="portrait">${A.portrait(l.w, "happy")}</div><div class="bubble"><span class="name">${esc(A.NAMES[l.w] || l.w)}</span>${wordsHtml(l.t, story)}${f}</div></div>`;
     }).join("");
   }
   function bindWords(root, story) {
@@ -342,6 +347,49 @@
       d.tapped[w] = (d.tapped[w] || 0) + 1; if (R) R.tapped++; St.save();
       if (d.settings.soundOut !== false && window.Phonics && window.Phonics.chunks(w)) wordCard(w); else T.sayWord(w);
     }));
+  }
+  /* 🚀 slide-to-read: drag the rocket along the path under a caption or bubble and every word it passes lights up and is said —
+     finger-tracking with a voice, at the reader's own pace (stop on a word to hear it, go back, go slow). Fast scrubs only say
+     where the rocket stops. The clock pauses while a finger is on a rocket; the rockets are inert while Bolt is reading (echo). */
+  const FLY_PAD = 20;   // px each side of the path the rocket can't leave (half its width)
+  function bindFly(root) {
+    const d = St.load(), tok = R && R.token, idx = R && R.idx, readBtn = $("#read");
+    $$(".fly", root).forEach((fly) => {
+      const words = $$(".word", fly.parentElement), n = words.length;
+      if (!n) { fly.remove(); return; }
+      const rocket = $(".fly-rocket", fly), fill = $(".fly-fill", fly);
+      fly.setAttribute("aria-valuemax", String(n));
+      let cur = -1, tmr = 0, drag = false;
+      function at(i) {
+        if (i === cur) return;
+        cur = i;
+        $$(".word.hl", root).forEach((w) => w.classList.remove("hl"));
+        words[i].classList.add("hl");
+        fly.setAttribute("aria-valuenow", String(i + 1));
+        clearTimeout(tmr); T.stop();   // cut the last word the moment the rocket moves on
+        tmr = setTimeout(() => { if (!fly.isConnected) return; T.speak(words[i].textContent.trim(), { rate: .85 }); if (R) R.slid++; }, 90);
+        if (i === n - 1) { rocket.classList.remove("boost"); void rocket.offsetWidth; rocket.classList.add("boost"); }
+      }
+      function move(e) {
+        const r = fly.getBoundingClientRect(), W = Math.max(1, r.width - FLY_PAD * 2);
+        const x = Math.min(W, Math.max(0, e.clientX - r.left - FLY_PAD));
+        rocket.style.left = (FLY_PAD + x) + "px"; fill.style.width = (FLY_PAD + x) + "px";
+        at(Math.min(n - 1, Math.floor((x / W) * n)));
+      }
+      fly.addEventListener("pointerdown", (e) => {
+        if (readBtn && readBtn.disabled) return;   // Bolt is reading — the rocket waits for your turn
+        e.preventDefault(); try { fly.setPointerCapture(e.pointerId); } catch (x) { }
+        drag = true; fly.classList.add("dragging"); pauseTimer(); T.unlock();
+        if (!d.settings.slideSeen) { d.settings.slideSeen = true; St.save(); $$(".fly-tip", root).forEach((t) => t.remove()); }
+        move(e);
+      });
+      fly.addEventListener("pointermove", (e) => { if (drag) move(e); });
+      const up = () => { if (!drag) return; drag = false; fly.classList.remove("dragging"); resumeTimer(tok, idx); };
+      fly.addEventListener("pointerup", up); fly.addEventListener("pointercancel", up);
+      // iOS belt-and-braces: touch-action:none stops the page scrolling under the drag; older Safari needs the touchmove blocked too
+      fly.addEventListener("touchmove", (e) => { if (drag) e.preventDefault(); }, { passive: false });
+      fly.addEventListener("contextmenu", (e) => e.preventDefault());
+    });
   }
   function pauseTimer() { if (R && R.pageStart) { R.seconds += (Date.now() - R.pageStart) / 1000; R.pageStart = 0; } }
   function resumeTimer(tok, idx) { if (R && R.token === tok && R.idx === idx && R.reading && !R.pageStart && current === "reader") R.pageStart = Date.now(); }
@@ -379,6 +427,7 @@
     const echo = !isMath && T.available && d.settings.tts && (d.settings.echo === "always" || (d.settings.echo === "first" && !St.storyRec(story.id).reads));
     const mic = !isMath && d.settings.mic !== false && window.Rec && Rec.ok;
     const ghost = !isMath && d.settings.timer && R.ghostSec > 0;
+    const fly = !isMath && T.available && d.settings.tts && d.settings.slide !== false ? { tip: !d.settings.slideSeen } : null;
     const elapsed = () => R.seconds + (R.pageStart ? (Date.now() - R.pageStart) / 1000 : 0);
     const ghostPos = () => Math.min(100, (elapsed() / R.ghostSec) * 100);
     const mePos = Math.round((idx / (total + 1)) * 100);
@@ -394,7 +443,7 @@
           <div class="choices ${p.math.choices.length === 4 ? "four" : ""}" id="choices">${p.math.choices.map((c) => `<button class="choice" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div>
           <button class="btn help-btn wide" id="help">🤖 Bolt, help!</button>
           <div id="feedback"></div>`
-        : linesHtml(p.lines, story)}
+        : linesHtml(p.lines, story, fly)}
       </div>
       ${mic ? `<div class="playback" id="playback" hidden><button class="btn grow" id="playme">▶ Hear yourself</button><button class="btn grow" id="playbolt" ${T.available ? "" : "disabled"}>🔊 Hear Bolt</button></div>` : ""}
       <div class="reader-controls ${mic ? "three" : ""}">
@@ -406,6 +455,7 @@
     T.SFX.page();
     const textEl = $("#text");
     bindWords(textEl, story);
+    if (fly) bindFly(textEl);
     $("#exit").addEventListener("click", () => { T.SFX.tap(); go("season", { n: story.season }); });
     $("#read").addEventListener("click", (e) => readAloud(textEl, e.currentTarget));
 
@@ -596,7 +646,7 @@
     rec.reads++; rec.done = true; rec.stars = Math.max(rec.stars, stars); rec.lastWpm = wpm; rec.bestWpm = Math.max(rec.bestWpm, wpm);
     rec.quizRight += R.quizFirst; rec.quizTotal += story.quiz.length; rec.mathFirst += R.mathFirst; rec.mathTotal += R.mathTotal; rec.lastAt = Date.now();
     rec.helps = (rec.helps || 0) + (R.mathHelp || 0);
-    rec.history = (rec.history || []).concat([{ t: Date.now(), wpm, stars, tapped: R.tapped, rec: Object.keys(R.recs).length, help: R.mathHelp || 0 }]).slice(-20);
+    rec.history = (rec.history || []).concat([{ t: Date.now(), wpm, stars, tapped: R.tapped, slid: R.slid || 0, rec: Object.keys(R.recs).length, help: R.mathHelp || 0 }]).slice(-20);
     if (window.Rec) Rec.release();
     d.xp += xp;
     const day = St.day(); day.words += R.words; day.seconds += Math.round(R.seconds); day.stories++;
@@ -981,6 +1031,7 @@
           <option value="always" ${d.settings.echo === "always" || !d.settings.echo ? "selected" : ""}>Every read — best while catching up</option>
           <option value="first" ${d.settings.echo === "first" ? "selected" : ""}>Only the first read of a story — re-reads are solo</option>
           <option value="off" ${d.settings.echo === "off" ? "selected" : ""}>Off</option></select></div>
+        <div class="toggle">🚀 Slide-to-read rocket under every sentence — drag it and each word is read at ${esc(d.name || "the reader")}'s own pace (the clock pauses while sliding) <div class="switch ${d.settings.slide !== false ? "on" : ""}" data-s="slide"></div></div>
         <div class="toggle">🎙️ Record button — hear yourself, then hear Bolt <div class="switch ${d.settings.mic !== false ? "on" : ""}" data-s="mic"></div></div>
         <div class="toggle">Sound effects <div class="switch ${d.settings.sfx ? "on" : ""}" data-s="sfx"></div></div>
       </div>

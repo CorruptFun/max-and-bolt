@@ -40,6 +40,14 @@ The timer only runs on reading pages — math pages are thinking time.
 - **Echo reading**: on every reading page Bolt reads first (words highlight), NEXT is locked, then the strip flips
   to "🎤 Your turn!" and only then does the clock run. `settings.echo` = always | first (first read only) | off.
   Read-aloud always pauses the clock, so WPM is only ever the kid's own reading.
+- **Slide to read** (v1.3, 2026-09-10): every caption and speech bubble has a dotted flight path with a 🚀 under the words.
+  Drag the rocket and the word it is over lights up and is said — finger-tracking with a voice, at the kid's own pace
+  (stop on a word to hear it, go back, go slow). A fast scrub only says where the rocket stops (90 ms settle; the
+  previous word is cut the moment the rocket moves on). Reaching the last word lands on a ⭐ with a little boost hop.
+  The clock pauses while a finger is on a rocket; rockets are inert while Bolt is reading (echo). Reading pages only —
+  math pages keep echo + "Bolt, help!". A "slide me ▸" nudge shows until the first drag (`settings.slideSeen`).
+  Parent switch `settings.slide`. `R.slid` (words said by rocket) is logged in each read's history entry.
+  Mapping is linear across the block's words, so it is precise for S0–S2 sentences and gets fiddly on S3+ paragraphs.
 - **Race your ghost**: a story you've read before shows a 👻 gliding along the progress bar at your best pace.
   Beat it to the end → "🏁 You beat your ghost!" + 15 XP; the results gauge marks the old best.
 - **Hear yourself** (`js/rec.js`): 🎙️ records a page (MediaRecorder → IndexedDB, device-only, newest 40 kept);

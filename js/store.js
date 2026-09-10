@@ -9,7 +9,7 @@
     xp: 0, unlocked: 1, mathLevel: 1, mathLog: [],
     stories: {}, tapped: {}, vocab: {}, days: {}, stickers: [], workshop: {},
     spelling: { week: "", words: [], setAt: 0, log: {}, history: [] },   // this week's school spelling list (parent enters it)
-    settings: { timer: true, tts: true, sfx: true, bonus: true, soundOut: true, echo: "always", mic: true },
+    settings: { timer: true, tts: true, sfx: true, bonus: true, soundOut: true, echo: "always", mic: true, slide: true },
     createdAt: Date.now(),
   }, o || {});
   let root = null, temp = null;
