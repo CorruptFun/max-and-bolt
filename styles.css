@@ -364,3 +364,10 @@ textarea { min-height: 90px; font-size: .8rem; font-family: ui-monospace, monosp
 .choice.pulse { animation: pulse-choice 1s ease-in-out infinite; background: #fff3a8; }
 @keyframes pulse-choice { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); box-shadow: 6px 6px 0 var(--ink); } }
 .ws-pic { font-size: 1.4rem; letter-spacing: 2px; white-space: pre-line; line-height: 1.5; min-height: 0; margin-top: 4px; }
+
+/* Bolt's Big Questions (Home Connections): one big tappable row per teacher question */
+.qlist { display: flex; flex-direction: column; gap: 8px; }
+.qrow { display: grid; grid-template-columns: 36px 1fr; gap: 8px; align-items: center; text-align: left; border: 3px solid var(--ink); border-radius: 14px; background: #fff; box-shadow: 3px 3px 0 var(--ink); padding: 10px 12px; cursor: pointer; font-family: var(--font-read); font-size: 1.15rem; font-weight: 700; line-height: 1.3; color: var(--ink); transition: transform .08s, box-shadow .08s; }
+.qrow:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.qrow.done { background: #e6ffe9; }
+.qrow .qe { font-size: 1.5rem; text-align: center; }

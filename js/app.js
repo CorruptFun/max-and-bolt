@@ -229,6 +229,8 @@
     const band = C.bandFor(d.mathLevel);
     const sp = d.spelling || { words: [], log: {} };
     const nMast = sp.words.filter((x) => mastered(sp.log, x.w)).length;
+    const hq = d.homeq || { items: [], log: {} };
+    const nTold = hq.items.filter((it) => told(hq.log, it.q)).length;
     render(`<div class="screen">
       <div class="hero">
         <button class="avatar" id="switch" title="Switch reader">${A.portrait("max", "happy")}</button>
@@ -248,6 +250,7 @@
         <button class="tile" data-go="vault"><div class="emoji">📚</div><div class="name">Word Vault</div><div class="sub">${Object.keys(d.vocab).length + Object.keys(d.tapped).length} words</div></button>
         <button class="tile" data-go="stickers"><div class="emoji">⭐</div><div class="name">Stickers</div><div class="sub">${d.stickers.length} / ${window.STORIES.length}</div></button>
         ${sp.words.length ? `<button class="tile" data-go="spelling"><div class="emoji">🐝</div><div class="name">Spelling Blast</div><div class="sub">${sp.words.length} words · ${nMast} mastered</div></button>` : ""}
+        ${hq.items.length ? `<button class="tile" data-go="bigq"><div class="emoji">🧠</div><div class="name">Big Questions</div><div class="sub">${hq.items.length} questions · ${nTold} told</div></button>` : ""}
       </div>
       <h2 style="font-size:1.6rem;margin-top:4px">Seasons</h2>
       <div class="season-list">
@@ -916,6 +919,117 @@
   }
 
   /* =====================================================================
+     BOLT'S BIG QUESTIONS — the teacher's weekly "Home Connections" (js/homeq.js). Bolt asks a question aloud, the
+     kid explains it to a grown-up in a complete sentence (that IS the homework), then Bolt shows his answer and,
+     for topics he knows, a one-tap quick check. Nothing is a fail state: a miss gets "try again", stars are for
+     first tries. Told = +5 XP, first-try check = +5 XP. `homeq.log[q] = { told, right, wrong, last }`.
+     ===================================================================== */
+  const Q = () => window.HomeQ;
+  const homeqList = () => (St.load().homeq && St.load().homeq.items) || [];
+  const told = (log, q) => (((log || {})[q] || {}).told || 0) > 0;
+  const storyText = (s) => { let t = ""; s.pages.forEach((p) => { (p.lines || []).forEach((l) => { t += " " + (l.n || l.t || ""); }); if (p.math) t += " " + (p.math.intro || "") + " " + p.math.q + " " + (p.math.success || ""); }); return H(t); };
+  const storiesWithTopics = (items) => Q() ? Q().storiesWith(items, storyText) : [];
+  const plain = { vocab: {} };   // wordsHtml needs a story-shaped thing for vocab lookups
+  screens.bigq = function () {
+    const d = St.load(), hq = d.homeq;
+    if (!hq || !hq.items.length || !Q()) return go("home", {}, true);
+    const log = hq.log || {};
+    const hits = storiesWithTopics(hq.items).slice(0, 4);
+    const nTold = hq.items.filter((it) => told(log, it.q)).length;
+    render(`<div class="screen">
+      ${topbar("Bolt's Big Questions", esc(hq.week || ""))}
+      <div class="panel-frame">${A.panel({ bg: "room", cast: [{ who: "bolt", mood: "think", pose: "think", x: 35 }, { who: "max", mood: "excited", pose: "point", x: 70, flip: true }], props: [{ e: "❓", x: 18, y: 28, s: 44 }, { e: "💡", x: 84, y: 22, s: 40 }] })}</div>
+      <div class="card yellow"><h2>Your teacher's questions</h2><div class="muted small" style="margin-bottom:8px">Bolt asks. You tell a grown-up the answer in a complete sentence! Then see what Bolt thinks.</div>
+        <div class="qlist">${hq.items.map((it, i) => { const t = Q().topicFor(it.q); return `<button class="qrow ${told(log, it.q) ? "done" : ""}" data-i="${i}"><span class="qe">${told(log, it.q) ? "✅" : t ? t.emoji : "❓"}</span><span class="qt">${esc(it.q)}</span></button>`; }).join("")}</div></div>
+      <button class="btn big primary wide" id="start">${nTold ? "ASK ME AGAIN! 🧠" : "ASK ME! 🧠"}</button>
+      ${hits.length ? `<h2 style="font-size:1.4rem">Stories about these</h2>${hits.map((h) => `<button class="story-card" data-story="${h.story.id}">
+        <div class="cover">${A.panel(h.story.cover)}</div>
+        <div class="body"><div class="ep">SEASON ${h.story.season} · EPISODE ${h.story.num}</div><div class="name">${esc(h.story.title)}</div><div class="blurb" style="color:#1f6fd6;font-weight:700">${h.found.map((id) => Q().byId(id).emoji).join(" ")} ${esc(h.story.blurb ? H(h.story.blurb) : "")}</div></div></button>`).join("")}` : ""}
+    </div>`);
+    $$(".qrow").forEach((b) => b.addEventListener("click", () => { T.SFX.tap(); runBigQ([hq.items[+b.dataset.i]]); }));
+    $$("[data-story]").forEach((b) => b.addEventListener("click", () => { T.SFX.tap(); go("reader", { id: b.dataset.story }); }));
+    $("#start").addEventListener("click", () => { T.SFX.tap(); runBigQ(hq.items.filter((it) => !told(log, it.q)).concat(hq.items.filter((it) => told(log, it.q)))); });
+  };
+  function runBigQ(queue) {
+    const d = St.load(), hq = d.homeq; hq.log = hq.log || {}; const log = hq.log;
+    const shuffle = (a) => a.slice().sort(() => Math.random() - .5);
+    let i = 0, xp = 0, stars = 0, nTold = 0;
+    const wireWords = (root) => $$(".word", root).forEach((el) => el.addEventListener("click", () => { T.stop(); wordCard(el.dataset.w); }));
+    function round() {
+      if (i >= queue.length) return end();
+      const it = Q().resolve(queue[i]);
+      const L = log[it.q] = log[it.q] || { told: 0, right: 0, wrong: 0 };
+      const ask = () => T.speak(H(it.q), { rate: .85 });
+      render(`<div class="screen">
+        <div class="topbar"><button class="btn icon" id="quit" aria-label="Quit">✕</button><div class="title">Big Questions</div><div class="meta">${i + 1} / ${queue.length}</div></div>
+        <div class="progress"><i style="width:${Math.round((i / queue.length) * 100)}%"></i></div>
+        <div class="card">
+          <div class="speech"><div class="portrait">${A.portrait("bolt", "think")}</div><div class="bubble"><span class="name">Bolt</span>${wordsHtml(it.q, plain)}</div></div>
+          <div class="row" style="margin-top:12px"><button class="btn blue grow" id="say">🔊 Ask again</button></div>
+        </div>
+        <div id="stage">
+          <div class="card yellow center"><div class="display" style="font-size:1.4rem">🗣️ Tell a grown-up!</div><div class="muted small" style="margin:4px 0 10px">Answer in a complete sentence.</div>
+            <button class="btn big primary wide" id="toldit">I TOLD THEM! ✅</button></div>
+        </div>
+      </div>`);
+      wireWords($(".bubble"));
+      $("#say").addEventListener("click", ask);
+      $("#quit").addEventListener("click", () => { T.SFX.tap(); go("bigq"); });
+      $("#toldit").addEventListener("click", () => {
+        T.SFX.right(); L.told++; L.last = Date.now(); nTold++; xp += 5;
+        const dy = St.day(); dy.told = (dy.told || 0) + 1; St.save();
+        reveal(it, L);
+      });
+      setTimeout(ask, 300);
+    }
+    function reveal(it, L) {
+      const stage = $("#stage");
+      const choices = it.check ? shuffle(it.check.c.map((c, k) => ({ c, ok: k === 0 }))) : null;
+      stage.innerHTML = `${it.a ? `<div class="card"><div class="speech"><div class="portrait">${A.portrait("bolt", "happy")}</div><div class="bubble"><span class="name">Bolt says</span>${wordsHtml(it.a, plain)}</div></div>
+          <div class="row" style="margin-top:12px"><button class="btn blue grow" id="hear">🔊 Hear Bolt</button></div></div>`
+        : `<div class="card center"><div class="muted">Bolt doesn't know this one yet. Your grown-up does!</div></div>`}
+        ${choices ? `<div class="card bonus"><div class="q-label">⚡ QUICK CHECK</div><div class="question">${wordsHtml(it.check.q, plain)}</div>
+          <div class="choices" style="margin-top:10px">${choices.map((x, k) => `<button class="choice" data-k="${k}">${esc(x.c)}</button>`).join("")}</div><div id="fb"></div></div>` : ""}
+        <button class="btn big primary wide" id="next" ${choices ? "hidden" : ""}>${i + 1 < queue.length ? "NEXT ▶" : "FINISH 🏁"}</button>`;
+      wireWords(stage);
+      const hear = $("#hear"); if (hear) hear.addEventListener("click", () => T.speak(H(it.a), { rate: .85 }));
+      if (it.a) T.speak(H(it.a), { rate: .85, onEnd: (done) => { if (done && choices) T.speak(H(it.check.q), { rate: .85 }); } });
+      $("#next").addEventListener("click", () => { T.SFX.tap(); i++; round(); });
+      if (!choices) return;
+      let tries = 0;
+      $$(".choice", stage).forEach((b) => b.addEventListener("click", () => {
+        const x = choices[+b.dataset.k], fb = $("#fb"); tries++;
+        if (x.ok) {
+          T.SFX.right(); b.classList.add("right"); $$(".choice", stage).forEach((c) => c.disabled = true);
+          const ft = tries === 1; if (ft) { L.right++; stars++; xp += 5; } else L.wrong++;
+          St.save();
+          fb.innerHTML = `<div class="success center" style="margin-top:10px">${ft ? "⭐ First try!" : "✅ You got it!"}</div>`;
+          $("#next").hidden = false;
+        } else {
+          T.SFX.wrong(); b.classList.add("wrong"); b.disabled = true;
+          fb.innerHTML = `<div class="hint center" style="margin-top:10px">Not that one. Try again!</div>`;
+        }
+      }));
+    }
+    function end() {
+      d.xp += xp; St.save();
+      const all = hq.items.filter((it) => told(log, it.q)).length;
+      render(`<div class="screen">
+        <div class="topbar"><div class="title">Big Questions</div></div>
+        <div class="card yellow center"><div class="results-stars">${stars >= queue.length && queue.length > 1 ? "<span>🏆</span>" : "<span>🧠</span>"}</div>
+          <div class="display" style="font-size:1.5rem;margin-top:6px">You explained ${nTold} ${nTold === 1 ? "thing" : "things"}!</div>${stars ? `<div class="muted">⭐ ${stars} quick check${stars === 1 ? "" : "s"} on the first try</div>` : ""}</div>
+        <div class="card center"><div class="display" style="font-size:1.5rem">+${xp} XP</div><div class="muted small">${all} / ${hq.items.length} questions told this week</div></div>
+        <div class="row"><button class="btn grow" id="again">Again 🧠</button><button class="btn primary grow" id="home">Home</button></div>
+      </div>`);
+      if (all >= hq.items.length) { T.SFX.fanfare(); confetti(120); } else T.SFX.star();
+      try { history.replaceState({ name: "bigq", args: {} }, ""); } catch (e) { }
+      $("#again").addEventListener("click", () => { T.SFX.tap(); go("bigq"); });
+      $("#home").addEventListener("click", () => go("home"));
+    }
+    round();
+  }
+
+  /* =====================================================================
      STICKERS
      ===================================================================== */
   screens.stickers = function () {
@@ -1017,6 +1131,17 @@
         <div class="muted small" style="margin-top:8px"><b>Stories using these words:</b> ${hits.length ? hits.map((h) => esc(h.story.title) + " (" + h.found.map(esc).join(", ") + ")").join(" · ") : "none yet."} Want an episode written around the whole list? Paste the words to Claude — see the project notes.</div>` : ""}
         ${sp.history && sp.history.length ? `<div class="muted small" style="margin-top:8px"><b>Past weeks:</b> ${sp.history.slice(-4).map((h) => esc(h.week) + " (" + h.mastered + "/" + h.words.length + " mastered)").join(" · ")}</div>` : ""}`; })()}
       </div>
+      <div class="card"><h2>Home Connections this week</h2>
+        ${(() => { const hq = d.homeq, hits = storiesWithTopics(hq.items); return `
+        <div class="muted small">The teacher's newsletter ends with "Home Connections" — questions to ask at home. Paste them here, one per line. Bolt already knows the usual 2nd-grade ones (sum, addend, data, graphs, nouns, verbs, make a ten, complete sentence, habitat…). For anything else, add the answer after a dash: <i>What is a habitat? - Where an animal lives.</i> A <b>Big Questions</b> tile appears on ${esc(d.name || "the reader")}'s home screen: Bolt asks each one aloud, ${esc(d.name || "the reader")} explains it to you in a complete sentence, then Bolt shows his answer and a quick check.</div>
+        <div class="field" style="margin-top:10px"><label>Week</label><input type="text" id="hqweek" value="${esc(hq.week || "")}" placeholder="${esc(defaultWeek())}" maxlength="40"></div>
+        <div class="field" style="margin-top:10px"><label>Questions</label><textarea id="hqitems" style="font-family:var(--font-read);font-size:1.05rem;min-height:150px" placeholder="What is a sum?&#10;What is an addend?&#10;What is a habitat? - Where an animal lives and finds food.">${esc(hq.items.map((x) => x.q + (x.a ? " - " + x.a : "")).join("\n"))}</textarea></div>
+        <div class="row" style="margin-top:8px"><button class="btn primary grow" id="hqsave">Save questions</button>${hq.items.length ? `<button class="btn grow" id="hqnew">New week (clear)</button>` : ""}</div>
+        ${hq.items.length ? `<table class="table" style="margin-top:10px"><tr><th>Question</th><th>Bolt's answer</th><th>Told</th><th>Check</th></tr>
+          ${hq.items.map((x) => { const r = window.HomeQ.resolve(x), L = hq.log[x.q] || {}; return `<tr><td>${esc(x.q)}</td><td>${r.own ? "👪 yours" : r.topic ? "🤖 " + r.topic.emoji + " knows it" : "<span style='color:#c02b2b'>✍️ add one after a dash</span>"}</td><td>${L.told ? "✅ ×" + L.told : "–"}</td><td>${r.check ? (L.right || L.wrong ? (L.right || 0) + "✓ " + (L.wrong || 0) + "✗" : "⚪") : "–"}</td></tr>`; }).join("")}</table>
+        <div class="muted small" style="margin-top:8px"><b>Stories about these topics:</b> ${hits.length ? hits.map((h) => esc(h.story.title) + " (" + h.found.map((id) => window.HomeQ.byId(id).emoji).join(" ") + ")").join(" · ") : "none yet."} Want an episode built around this week's list? Paste the questions to Claude — see the project notes.</div>` : ""}
+        ${hq.history && hq.history.length ? `<div class="muted small" style="margin-top:8px"><b>Past weeks:</b> ${hq.history.slice(-4).map((h) => esc(h.week) + " (" + h.told + "/" + h.items.length + " told)").join(" · ")}</div>` : ""}`; })()}
+      </div>
       <div class="card"><h2>Settings</h2>
         <div class="field"><label>Reader's name</label><input type="text" id="pname" value="${esc(d.name)}" maxlength="16"></div>
         <div class="field" style="margin-top:10px"><label>Hero</label><select id="hero"><option value="boy" ${d.hero !== "girl" ? "selected" : ""}>Max (boy)</option><option value="girl" ${d.hero === "girl" ? "selected" : ""}>Maxie (girl)</option></select></div>
@@ -1064,6 +1189,18 @@
       const sp = d.spelling;
       sp.history = (sp.history || []).concat([{ week: sp.week || defaultWeek(), words: sp.words.map((x) => x.w), mastered: sp.words.filter((x) => mastered(sp.log, x.w)).length, t: Date.now() }]).slice(-12);
       sp.words = []; sp.log = {}; sp.week = ""; St.save(); parentDash();
+    });
+    $("#hqsave").addEventListener("click", () => {
+      const hq = d.homeq, items = window.HomeQ.parse($("#hqitems").value);
+      if (!items.length) { modal(`<h2>No questions yet</h2><div class="def">Paste the teacher's Home Connections, one per line, like <b>What is a sum?</b></div><button class="btn primary" data-close>OK</button>`); return; }
+      hq.items = items; hq.week = $("#hqweek").value.trim() || defaultWeek(); hq.setAt = Date.now(); hq.log = hq.log || {};
+      Object.keys(hq.log).forEach((q) => { if (!items.find((x) => x.q === q)) delete hq.log[q]; });
+      St.save(); parentDash(); window.scrollTo(0, 0);
+    });
+    const hqnew = $("#hqnew"); if (hqnew) hqnew.addEventListener("click", () => {
+      const hq = d.homeq;
+      hq.history = (hq.history || []).concat([{ week: hq.week || defaultWeek(), items: hq.items.map((x) => x.q), told: hq.items.filter((x) => told(hq.log, x.q)).length, t: Date.now() }]).slice(-12);
+      hq.items = []; hq.log = {}; hq.week = ""; St.save(); parentDash();
     });
     if (window.Rec) Rec.list(d.id).then((list) => {
       const box = $("#recs"); if (!box) return;

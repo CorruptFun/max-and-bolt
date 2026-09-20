@@ -19,3 +19,10 @@
   4–6 vocab (spelling words make good vocab entries), a sticker emoji in `content.js`, and running gags from
   BRIEF.md. Append to `js/stories/s<N>.js` with the next `num`. The parent dashboard then shows it under
   "Stories using these words" automatically.
+- **Weekly Home Connections (on request):** the teacher's newsletter ends with "Home Connections" (10-ish review
+  questions: "What is a sum?" "What are nouns?"). Austin pastes them into the parent dashboard himself — Bolt's
+  built-in answers + quick checks live in `js/homeq.js` `BANK` (keyword-matched). When Austin pastes the list to
+  you: (1) add any topic the bank doesn't cover (id, `keys` regexes, `words` for story matching, a 1–2 sentence
+  kid-level `a`, a 4-choice `check` with the right answer FIRST — the UI shuffles); (2) write ONE new episode for
+  the season he's reading that weaves 5–6 of the topics into the plot (same rules as the spelling episode) and
+  declare them in the story's `topics: [...]` so it shows under "Stories about these" on the Big Questions screen.

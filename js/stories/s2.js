@@ -172,4 +172,36 @@
       { q: "What did Bolt yell?", c: ["HELP!", "FRESH!", "MINE!", "STOP!"], a: 1 },
     ],
   });
+  /* Home Connections episode (week of Sep 18, 2026): habitat · data · bar graph · sum & addends · make a ten · nouns & verbs · complete sentence */
+  S.push({
+    id: "s2e7", season: 2, num: 7, title: "The Backyard Count",
+    blurb: "Who lives in the yard? Max counts animals. Bolt counts spoons.",
+    topics: ["habitat", "data", "graph", "sum", "addend", "maketen", "noun", "verb", "sentence"],
+    cover: { bg: "yard", cast: [{ who: "max", mood: "think", pose: "hold", x: 30 }, { who: "bolt", mood: "excited", pose: "point", x: 68, flip: true }], props: [{ e: "🐦", x: 20, y: 22, s: 40 }, { e: "🐿️", x: 82, y: 40, s: 40 }, { e: "🥄", x: 55, y: 20, s: 34, r: 30 }] },
+    vocab: { habitat: "The place where an animal lives and finds food and water.", data: "Facts and numbers you collect, like how many birds you saw.", sum: "The answer when you add.", addends: "The numbers you add together.", noun: "A person, place, or thing.", verb: "An action word." },
+    pages: [
+      { art: { bg: "room", cast: [{ who: "max", mood: "think", pose: "hold", x: 32 }, { who: "bolt", mood: "excited", pose: "up", x: 70, flip: true }], props: [{ e: "📋", x: 32, y: 60, s: 36 }, { e: "🥄", x: 86, y: 70, s: 30, r: 40 }] },
+        lines: [{ n: "Max had homework. {He} had to find out what animals lived in the backyard, so {he} made a chart. Bolt wanted to help." }, { w: "bolt", t: "I will count the spoons." }] },
+      { art: { bg: "yard", cast: [{ who: "max", mood: "happy", pose: "point", x: 30 }], props: [{ e: "🐦", x: 60, y: 24, s: 34 }, { e: "🐦", x: 75, y: 18, s: 30 }, { e: "🐦", x: 88, y: 30, s: 30 }, { e: "🐿️", x: 70, y: 70, s: 36 }, { e: "🐿️", x: 85, y: 78, s: 34 }, { e: "🐌", x: 50, y: 86, s: 28 }] },
+        lines: [{ n: "A backyard is a habitat. Animals live there because it has food, water, and places to hide. Max found three birds, two squirrels, and one very slow snail." }] },
+      { art: { bg: "yard", cast: [{ who: "max", mood: "think", pose: "think", x: 50 }], props: [{ e: "🐦", x: 20, y: 30, s: 30 }, { e: "🐿️", x: 80, y: 40, s: 30 }, { e: "🐌", x: 82, y: 82, s: 26 }, { e: "📋", x: 20, y: 76, s: 34 }] },
+        math: { intro: "Max added up the data.", q: "Add the addends: 3 birds, 2 squirrels, and 1 snail. What is the sum?", answer: "6", choices: ["5", "6", "7", "3"], hint: "The addends are 3, 2, and 1. Start at 3, add 2 to get 5, then 1 more.", success: "Six animals! The addends were 3, 2, and 1, and the sum is 6." } },
+      { art: { bg: "yard", cast: [{ who: "bolt", mood: "love", pose: "hold", x: 35 }, { who: "max", mood: "worried", pose: "hips", x: 72, flip: true }], props: [{ e: "🥄", x: 20, y: 74, s: 30, r: -20 }, { e: "🥄", x: 30, y: 82, s: 30, r: 30 }, { e: "🥄", x: 50, y: 80, s: 30 }, { e: "🍴", x: 44, y: 66, s: 30, r: 60 }], fx: "sparkle" },
+        lines: [{ n: "Bolt found ten spoons and one shiny fork. He put them on the chart too." }, { w: "bolt", t: "Spoons live here. Mine!" }, { w: "max", t: "Spoons are not animals, Bolt." }] },
+      { art: { bg: "garage", cast: [{ who: "max", mood: "happy", pose: "point", x: 30 }, { who: "bolt", mood: "sly", pose: "hold", x: 72, flip: true }], props: [{ e: "📊", x: 50, y: 40, s: 70 }, { e: "🥄", x: 72, y: 56, s: 24, r: 30 }] },
+        lines: [{ n: "Max drew a bar graph. The bird bar was the tallest, so birds won. Bolt drew a spoon bar, but Max erased it." }] },
+      { art: { bg: "room", cast: [{ who: "zoe", mood: "sly", pose: "point", x: 30 }, { who: "max", mood: "think", pose: "hold", x: 70, flip: true }], props: [{ e: "📋", x: 70, y: 60, s: 34 }, { e: "✏️", x: 88, y: 76, s: 28, r: -30 }] },
+        lines: [{ n: "Zoe checked {his} sentences. 'Birds eat' was too short, so Max fixed it: 'The birds eat seeds in the yard.'" }, { w: "zoe", t: "Bird is a noun. Eat is a verb. You're welcome." }] },
+      { art: { bg: "garage", cast: [{ who: "bolt", mood: "excited", pose: "up", x: 50 }], props: [{ e: "🥄", x: 18, y: 70, s: 28 }, { e: "🥄", x: 28, y: 80, s: 28, r: 40 }, { e: "🥄", x: 76, y: 72, s: 28, r: -30 }, { e: "🥄", x: 86, y: 82, s: 28 }] },
+        math: { intro: "Bolt counted his shiny things.", q: "Bolt had 7 spoons. He found 3 more. How many spoons is that?", answer: "10", choices: ["9", "10", "11", "4"], hint: "7 and 3 make a ten!", success: "Ten! Seven and three make a ten. Bolt said it was the best data of all." } },
+      { art: { bg: "night", cast: [{ who: "cat", mood: "sly", x: 78, y: 40, scale: .7 }], props: [{ e: "📋", x: 35, y: 70, s: 50 }, { e: "✉️", x: 35, y: 58, s: 26, r: 10 }, { e: "🌙", x: 15, y: 15, s: 40 }] },
+        lines: [{ n: "That night, a card sat on the chart. It said: 'Four cats live here. Count again. — W.'" }] },
+    ],
+    quiz: [
+      { q: "Why is the backyard a habitat?", c: ["It is big", "Animals find food and places to hide there", "It has spoons", "Zoe said so"], a: 1 },
+      { q: "Which bar was the tallest on Max's graph?", c: ["Spoons", "Snails", "Birds", "Squirrels"], a: 2 },
+      { q: "Who wrote the card on the chart?", c: ["Mr. Whiskers", "Zoe", "Dr. Dullsworth", "Bolt"], a: 0 },
+    ],
+  });
+
 })();

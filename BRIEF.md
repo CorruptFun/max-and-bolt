@@ -67,6 +67,17 @@ The timer only runs on reading pages — math pages are thinking time.
   the letters into the slots. Mastered = 3 first-tries in a row (✅). Words get a ⭐ wavy underline in every
   story, story cards show "⭐ N spelling", and the Spelling Blast screen lists stories that use them.
   Data: `profile.spelling = { week, words:[{w,s?}], log:{word:{right,wrong,streak}}, history[] }`.
+- **Bolt's Big Questions** (`js/homeq.js`, 2026-09-20): the teacher's weekly "Home Connections" — review questions
+  meant for the dinner table ("What is a sum?" "How can you tell which animals live in a habitat?"). The parent pastes
+  them (one per line; "question? - answer" overrides Bolt). Kid side: Bolt asks each aloud (tappable words), the kid
+  explains it to a grown-up in a complete sentence and taps "I told them!" (+5 XP, counts toward the streak), then
+  Bolt shows his own answer for the topic (read aloud) and a one-tap quick check (⭐ first try +5 XP; a miss is
+  "try again", never a fail). `BANK` holds ~20 kid-level 2nd-grade topics matched by keyword (sum, addend,
+  difference, make a ten, two-step problems, data, graphs, even/odd, place value, skip counting, compare, noun, verb,
+  adjective, complete sentence, blends, syllables, habitat, plants, ancient Asia); a question Bolt doesn't know shows
+  "your grown-up does". Stories declare `topics: [ids]` (plus a key-word scan) so the screen links "Stories about
+  these". Parent table shows told/check tallies per question. Data: `profile.homeq = { week, items:[{q,a?}],
+  log:{q:{told,right,wrong}}, history[] }`.
 
 ## Rules that keep it fun
 - Nothing is a fail state. Wrong answers get a hint and another try; stars are for first-try answers.
